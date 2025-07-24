@@ -1,77 +1,145 @@
 #include "Horse.h"
 
-Horse::Horse(const std::string& Newname)
-	: m_name(Newname)
+void Horse::HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX)
 {
-	// 스킬은 전부 임시, 추후 제대로 입력 예정
-	if (m_name == "말1")
-	{
-		m_speed = 3;
-		m_hp = 5.0f;
-		m_Position = { START_LINE, DF_BG_SIZE_Y - 10 };
-		m_Direction = { (short)m_speed , 0 };
-		m_skillList[0] = Skill("스킬1", 2, 5.0f);
-		m_skillList[1] = Skill("스킬2", 3, 5.0f);
-		m_skillList[2] = Skill("스킬3", 4, 5.0f);
-	}
 
-	else if (m_name == "말2")
-	{
-		m_speed = 4;
-		m_hp = 5.0f;
-		m_Position = { START_LINE, DF_BG_SIZE_Y - 9 };
-		m_Direction = { (short)m_speed , 0 };
-		m_skillList[0] = Skill("스킬1", 2, 5.0f);
-		m_skillList[1] = Skill("스킬2", 3, 5.0f);
-		m_skillList[2] = Skill("스킬3", 4, 5.0f);
-	}
+	// 말이 결승선에 도착하면 더 이상 그리지 않기
+	if (IsFinish())
+		return;
 
-	else if (m_name == "말3")
-	{
-		m_speed = 5;
-		m_hp = 5.0f;
-		m_Position = { START_LINE, DF_BG_SIZE_Y - 8 };
-		m_Direction = { (short)m_speed , 0 };
-		m_skillList[0] = Skill("스킬1", 2, 5.0f);
-		m_skillList[1] = Skill("스킬2", 3, 5.0f);
-		m_skillList[2] = Skill("스킬3", 4, 5.0f);
-	}
+	// 말의 좌표가 올바르지 않은 값일 시 그리지 않기
+	int screenX = m_Position.X - scrollX;
+	if (screenX < 0 || screenX >= DF_BG_SIZE_X)
+		return;
+	
+
+	char symbol = 'H';
+	if (m_name == HORSE1_NAME) symbol = '1';
+	else if (m_name == HORSE2_NAME) symbol = '2';
+	else if (m_name == HORSE3_NAME) symbol = '3';
+
+	// 몸체
+	BG[m_Position.Y][screenX].Text = symbol;
+
+	// 머리 (오른쪽)
+	if (screenX + 1 < DF_BG_SIZE_X)
+		BG[m_Position.Y][screenX + 1].Text = '>';
+
+	// 꼬리 (왼쪽)
+	if (screenX - 1 >= 0)
+		BG[m_Position.Y][screenX - 1].Text = '-';
 }
 
-void Horse::HorseRender(Tile(*BG)[DF_BG_SIZE_X])
+void Horse::InitHorse()
 {
+	if (m_name == HORSE1_NAME)
+	{
+		m_baseSpeed = 4;
+		m_Maxhp = 5.0f;
+		m_hp = m_Maxhp;
+		m_skillList[0] = Skill("스킬1", 2, 50.0f, 5.0f);
+		m_skillList[1] = Skill("스킬2", 3, 50.0f, 5.0f);
+		m_skillList[2] = Skill("스킬3", 4, 50.0f, 5.0f);
+	}
+
+	else if (m_name == HORSE2_NAME)
+	{
+		m_baseSpeed = 5;
+		m_Maxhp = 5.0f;
+		m_hp = m_Maxhp;
+		m_skillList[0] = Skill("스킬1", 2, 10.0f, 5.0f);
+		m_skillList[1] = Skill("스킬2", 3, 6.0f, 5.0f);
+		m_skillList[2] = Skill("스킬3", 4, 4.0f, 5.0f);
+	}
+
+	else if (m_name == HORSE3_NAME)
+	{
+		m_baseSpeed = 6;
+		m_Maxhp = 5.0f;
+		m_hp = m_Maxhp;
+		m_skillList[0] = Skill("스킬1", 2, 5.0f, 5.0f);
+		m_skillList[1] = Skill("스킬2", 3, 3.0f, 5.0f);
+		m_skillList[2] = Skill("스킬3", 4, 2.0f, 5.0f);
+	}
+
+}
+
+std::string Horse::SelectName(const std::string horseName[])
+{
+	// HorseName에 있는 말들 중 하나를 랜덤하게 선택
+	int roll = rand() % HORSE_NUM;
+	return m_name = horseName[roll];
 }
 
 void Horse::HorseTick()
 {
+	// 이동
+	if (isFinish)
+		return;
+	else
+	{
+		if (m_hp <= 0.0f)
+			m_hp = 0.0f;
+		else
+			m_hp -= 0.05f;
+
+		// 기력 설정
+		if (m_hp > m_Maxhp * 3.0f / 4.0f)
+			m_vitStatus = ENERGETIC;
+		else if (m_hp > m_Maxhp * 2.0f / 4.0f)
+			m_vitStatus = NORMAL;
+		else if (m_hp > m_Maxhp / 4.0f)
+			m_vitStatus = TIRED;
+		else
+			m_vitStatus = EXHAUSTED;
+
+		m_realSpeed = m_baseSpeed;
+		switch (m_vitStatus)
+		{
+		case ENERGETIC:
+			break;
+		case NORMAL:
+			m_realSpeed -= 1;
+			break;
+		case TIRED:
+			m_realSpeed = -2;
+			break;
+		case EXHAUSTED:
+			m_realSpeed = -3;
+			break;
+		}
+
+		for (int i = 0; i < SKILL_NUM; ++i)
+		{
+			const Skill& skill = m_skillList[i];
+			float randVal = static_cast<float>(rand()) / RAND_MAX * 100.0f;
+
+			if (randVal < skill.GetChance())
+			{
+				// 스킬 발동!
+				m_realSpeed += skill.GetSpeed(); // 스킬로 인한 속도 증가
+				m_hp += skill.GetHp();           // 스킬로 인한 체력 회복 (or 감소)
+
+				// 체력 최대치 넘지 않도록 조정
+				if (m_hp > m_Maxhp)
+					m_hp = m_Maxhp;
+
+				// 디버깅용 메시지
+				std::cout << m_name << " 말이 " << skill.GetName() << " 스킬을 발동!\n";
+			}
+
+			if (m_realSpeed < 1)
+				m_realSpeed = 1;
+			m_Position.X += m_realSpeed;
+		}
+
+	}
 }
 
-void Horse::SetName(const std::string Newname)
+bool Horse::IsFinish()
 {
-	m_name = Newname;
-}
-
-std::string Horse::GetName()
-{
-	return m_name;
-}
-
-void Horse::SetSpeed(const unsigned int Newspeed)
-{
-	m_speed = Newspeed;
-}
-
-unsigned int Horse::GetSpeed()
-{
-	return m_speed;
-}
-
-void Horse::SetHp(const float NewHp)
-{
-	m_hp = NewHp;
-}
-
-float Horse::GetHp()
-{
-	return m_hp;
+	if (m_Position.X >= FinishLine)
+		return isFinish = true;
+	else
+		return isFinish = false;
 }

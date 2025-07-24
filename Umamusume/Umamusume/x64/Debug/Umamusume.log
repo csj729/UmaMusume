@@ -1,14 +1,2 @@
-﻿  Defines.h
-  Horse.cpp
-  main.cpp
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(17,2): warning C4129: ' ': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(17,2): warning C4129: '/': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(18,2): warning C4129: '/': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(18,2): warning C4129: ' ': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(19,2): warning C4129: ' ': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(19,2): warning C4129: '/': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(20,2): warning C4129: ' ': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-C:\Users\KGA\source\repos\Umamusume\Umamusume\main.cpp(21,2): warning C4129: '_': 인식할 수 없는 문자 이스케이프 시퀀스입니다.
-  Skill.cpp
-  코드를 생성하고 있습니다...
+﻿  Horse.cpp
   Umamusume.vcxproj -> C:\Users\KGA\source\repos\Umamusume\x64\Debug\Umamusume.exe

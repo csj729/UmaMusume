@@ -5,11 +5,11 @@
 class Map
 {
 private:
-	Tile BG[DF_BG_SIZE_Y][DF_BG_SIZE_X];
-	int PosX;
-	int PosY;
+	int m_scrollX = 0;
 
 public:
 	Map();
+	void MapRender(Tile(*BG)[DF_BG_SIZE_X]);
+	void SetScrollX(int NewscrollX);
+	int GetScrollX() const { return m_scrollX; };
 };
-
