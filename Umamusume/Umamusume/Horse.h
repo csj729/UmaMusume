@@ -4,11 +4,12 @@
 #include "Skill.h"
 
 
-const std::string HorseName[HORSE_NUM] =
+const std::string HorseName[HORSETABLE_NUM] =
 {
-	HORSE1_NAME,
-	HORSE2_NAME,
-	HORSE3_NAME
+	"메지로 맥퀸",
+	"골드 쉽",
+	"오구리 캡",
+	"마루젠스키"
 };
 
 enum HorseVitality
@@ -19,7 +20,15 @@ enum HorseVitality
 	ENERGETIC
 };
 
-class Horse
+enum HorseType
+{
+	PACESETTER, // 도주
+	LEADER,		// 선행
+	STALKER,	// 선입
+	CLOSER		// 추입
+};
+
+class Horse	
 {
 private:
 	std::string m_name;
@@ -30,15 +39,18 @@ private:
 	COORD m_Position; //위치
 	Skill m_skillList[SKILL_NUM];
 	bool isFinish;
+	bool isRanked = false;
 	int m_lane;
 	HorseVitality m_vitStatus;
+	HorseType m_type;
+	float m_finishTime = 0.0f;
 
 public:
-	Horse() : m_name(""), m_baseSpeed(0), m_realSpeed(0), m_Maxhp(0.0f), m_hp(0.0f), m_Position({ 0, 0 }), isFinish(false), m_lane(0), m_vitStatus(HorseVitality::ENERGETIC) {}
+	Horse() : m_name(""), m_baseSpeed(0), m_realSpeed(0), m_Maxhp(0.0f), m_hp(0.0f), m_Position({ 0, 0 }), isFinish(false), m_lane(0), m_vitStatus(HorseVitality::ENERGETIC), m_type(HorseType::PACESETTER) {}
 	void HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX);
 	void InitHorse();
 	std::string SelectName(const std::string horseName[]);
-	void HorseTick();
+	void HorseTick(int leader_X, float deltaTime);
 
 	void SetName(const std::string Newname) { m_name = Newname; };
 	void SetBaseSpeed(const unsigned int Newspeed) { m_baseSpeed = Newspeed; };
@@ -50,15 +62,20 @@ public:
 		m_Position.X = x; m_Position.Y = y;
 	};
 	void SetLane(const int Newlane) { m_lane = Newlane; };
-
+	void SetRanked(bool val) { isRanked = val; };
+	void SetFinishTime(float time) { m_finishTime = time; }
+	void CheckFinish();
+	const Skill* GetActiveSkill() const;
 	std::string GetName() const { return m_name; };
 	short GetBaseSpeed() const { return m_baseSpeed; };
 	short GetRealSpeed() const { return m_realSpeed; };
 	float GetMaxHp() const { return m_Maxhp; };
 	float GetHp() const { return m_hp; };
 	COORD GetPos() const { return m_Position; };
-	bool IsFinish();
+	bool IsFinish() const { return isFinish; };
+	bool IsRanked() const { return isRanked; };
 	int GetLane() const { return m_lane; };
+	float GetFinishTime() const { return m_finishTime; }
 
 };
 
