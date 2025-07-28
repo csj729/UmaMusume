@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <random>
+#include <cmath>
 
 // 배경 크기
 #define DF_BG_SIZE_X 200
@@ -27,3 +28,12 @@
 
 const int worldWidth = SCROLL_SIZE;
 const int FinishLine = worldWidth - 5;
+
+enum Action
+{
+	TRAINING = 1,
+	RACE,
+	SAVE,
+	LOAD,
+	FINISH
+};

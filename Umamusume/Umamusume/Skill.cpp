@@ -26,14 +26,19 @@ void Skill::UpdateDuration(float deltaTime)
     }
 }
 
-bool Skill::ShouldActivate(float raceProgress, float currentHp, float maxHp, bool isLeading) const
+bool Skill::ShouldActivate(float raceProgress, float currentHp, float maxHp, bool isLeading)
 {
     float adjustedChance = m_chance;
 
     if (m_name == "존귀한 사명을 완수하기 위하여")
     {
-        if (currentHp > (maxHp / 2.0f) && raceProgress >= 0.66f)
-            adjustedChance += 0.5f;
+        if (raceProgress >= 0.66f && currentHp > (maxHp * 2.0f / 3.0f))
+            adjustedChance += 0.8f;
+        else if (raceProgress >= 0.66f && currentHp > (maxHp / 3.0f))
+        {
+            adjustedChance += 0.8f;
+            m_speed /= 2;
+        }
         else
             return false;
     }

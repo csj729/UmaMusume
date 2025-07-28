@@ -11,7 +11,7 @@ void Map::MapRender(Tile(*BG)[DF_BG_SIZE_X])
     const int laneHeight = LANE_HEIGHT; // 예: 10
     const int totalLanes = LANE_NUM;
     int startY = (DF_BG_SIZE_Y - (totalLanes * laneHeight + (totalLanes - 1))) / 2;
-
+    
     for (int lane = 0; lane < totalLanes; ++lane)
     {
         int yOffset = startY + lane * (laneHeight + 1);
@@ -23,13 +23,13 @@ void Map::MapRender(Tile(*BG)[DF_BG_SIZE_X])
                 int worldX = m_scrollX + x;
 
                 // 위아래 경계선
-                if (i == 0 || i == laneHeight - 1)
+                if ( i == laneHeight - 1)
                     BG[y][x].Text = '-';
                 else
                     BG[y][x].Text = ' ';
 
                 // 시작선과 결승선 위치 (월드 좌표 기준)
-                const int startLine = 5;
+                const int startLine = 3;
 
                 if (i != 0 && i != laneHeight - 1 && worldX == startLine)
                     BG[y][x].Text = '|';

@@ -128,15 +128,19 @@
     <ClCompile Include="Horse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="RaceManager.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="Tile.cpp" />
+    <ClCompile Include="TrainingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DoubleBuffering.h" />
     <ClInclude Include="Horse.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="RaceManager.h" />
     <ClInclude Include="Skill.h" />
     <ClInclude Include="Tile.h" />
+    <ClInclude Include="TrainingManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,8 +5,6 @@
 
 class DoubleBuffering
 {
-
-
 public:
 	void ScreenInit();
 	void ScreenFlipping();
