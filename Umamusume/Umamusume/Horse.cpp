@@ -54,7 +54,7 @@ void Horse::InitHorse()
 		m_type = LEADER;
 		isFinish = false;
 		isRanked = false;
-		m_skillList[0] = Skill("존귀한 사명을 완수하기 위하여", 12, 0.5f, 0.0f, 10.0f);  // 높은 발동률, 초반 스퍼트
+		m_skillList[0] = Skill("존귀한 사명을 완수하기 위하여", 15, 1.0f, 0.0f, 10.0f);  // 높은 발동률, 초반 스퍼트
 		m_skillList[1] = Skill("스태미너 킵", 1, 0.8f, 3.0f, 1.0f); // 체력 회복 보조
 		m_skillList[2] = Skill("속도 유지", 2, 0.6f, 0.0f, 4.0f);  // 안정적인 속도 유지
 	}
@@ -67,7 +67,7 @@ void Horse::InitHorse()
 		m_type = CLOSER;
 		isFinish = false;
 		isRanked = false;
-		m_skillList[0] = Skill("불침함, 출항!!", 20, 0.5f, 0.0f, 5.0f);  // 조건 만족 시 확정 발동
+		m_skillList[0] = Skill("불침함, 출항!!", 15, 0.5f, 0.0f, 5.0f);  // 조건 만족 시 확정 발동
 		m_skillList[1] = Skill("추격", 4, 0.5f, 0.0f, 5.0f);  // 저확률로 반격 기회
 		m_skillList[2] = Skill("후방 대기", 1, 0.8f, 1.0f, 5.0f); // 후반 지구력 보강
 	}

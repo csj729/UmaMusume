@@ -13,7 +13,7 @@ const std::string HorseName[HORSETABLE_NUM] =
 
 enum HorseVitality
 {
-	EXHAUSTED,   
+	EXHAUSTED,
 	TIRED,
 	NORMAL,
 	ENERGETIC
@@ -27,6 +27,15 @@ enum HorseType
 	CLOSER		// 추입
 };
 
+enum HorseCondition
+{
+	VERYPOOR,
+	POOR,
+	NORMAL,
+	GOOD,
+	EXCELLENT
+};
+
 class Horse	
 {
 private:
@@ -36,7 +45,7 @@ private:
 	float m_MaxStamina;
 	float m_stamina;
 	int m_intelligence;
-	COORD m_Position; //위치
+	COORD m_Position;
 	Skill m_skillList[SKILL_NUM];
 	bool isFinish;
 	bool isRanked = false;
@@ -44,27 +53,31 @@ private:
 	HorseVitality m_vitStatus;
 	HorseType m_type;
 	float m_finishTime = 0.0f;
+	HorseCondition m_condition;
+
 
 public:
-	Horse() : m_name(""), m_baseSpeed(0), m_realSpeed(0), m_MaxStamina(0.0f), m_stamina(0.0f), m_intelligence(0), m_Position({ 0, 0 }), isFinish(false), m_lane(0), m_vitStatus(HorseVitality::ENERGETIC), m_type(HorseType::PACESETTER) {}
+	Horse() : m_name(""), m_baseSpeed(0), m_realSpeed(0), m_MaxStamina(0.0f), m_stamina(0.0f), m_intelligence(0), m_Position({ 0, 0 }), isFinish(false), m_lane(0), m_vitStatus(HorseVitality::ENERGETIC), m_type(HorseType::PACESETTER), m_condition(HorseCondition::NORMAL) {}
 	void HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX);
 	void InitHorse();
 	std::string SelectName(const std::string horseName[]);
 	void HorseTick(int leader_X, float deltaTime);
-
 
 	void SetName(const std::string Newname) { m_name = Newname; };
 	void SetBaseSpeed(const unsigned int Newspeed) { m_baseSpeed = Newspeed; };
 	void SetRealSpeed(const unsigned int Newspeed) { m_realSpeed = Newspeed; };
 	void SetMaxHp(const float NewMaxHp) { m_MaxStamina = NewMaxHp; };
 	void SetHp(const float NewHp) { m_stamina = NewHp; };
+	void SetIntel(const int NewIntel) { m_intelligence = NewIntel; };
 	void SetPos(SHORT x, SHORT y)
 	{
 		m_Position.X = x; m_Position.Y = y;
 	};
 	void SetLane(const int Newlane) { m_lane = Newlane; };
 	void SetRanked(bool val) { isRanked = val; };
-	void SetFinishTime(float time) { m_finishTime = time; }
+	void SetFinishTime(float time) { m_finishTime = time; };
+	void SetHorseCondition(HorseCondition Newcondition) { m_condition = Newcondition; };
+
 	void CheckFinish();
 	const Skill* GetActiveSkill() const;
 	std::string GetName() const { return m_name; };
@@ -76,7 +89,9 @@ public:
 	bool IsFinish() const { return isFinish; };
 	bool IsRanked() const { return isRanked; };
 	int GetLane() const { return m_lane; };
-	float GetFinishTime() const { return m_finishTime; }
+	int GetIntel() const { return m_intelligence; };
+	float GetFinishTime() const { return m_finishTime; };
+	HorseCondition GetHorseCondition() const { return m_condition; };
 
 };
 

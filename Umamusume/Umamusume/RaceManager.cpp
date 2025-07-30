@@ -128,39 +128,48 @@ void RaceManager::PrintUI(DoubleBuffering& DB, Horse horses[])
     for (int i = 0; i < HORSE_NUM; ++i)
     {
         std::ostringstream line;
-        std::string msg = "";
+        std::string msg;
+
         if (!horses[i].IsFinish())
         {
-            line << horses[i].GetLane() << "Lane: [" << horses[i].GetName() << "] 위치: "
-                << horses[i].GetPos().X
-                << "   기력: " << std::fixed << std::setprecision(1) << horses[i].GetHp()
-                << "   속도: " << horses[i].GetRealSpeed();
+            line << std::setw(5) << horses[i].GetLane() << "레인: ["
+                << std::setw(12) << horses[i].GetName() << "] "
+                << "위치: " << std::setw(4) << horses[i].GetPos().X
+                << "   기력: " << std::fixed << std::setprecision(1) << std::setw(5) << horses[i].GetHp()
+                << "   속도: " << std::setw(3) << horses[i].GetRealSpeed();
 
             const Skill* activeSkill = horses[i].GetActiveSkill();
             if (activeSkill != nullptr)
-                line << "   ⚡스킬 발동중: " << activeSkill->GetName();
+            {
+                line << "   ⚡스킬: " << activeSkill->GetName();
+            }
 
             msg = line.str();
-            msg.resize(100, ' ');
+            msg.resize(100, ' ');  // 너비 고정
             DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + i, msg.c_str());
         }
         else
         {
             std::ostringstream oss;
-            oss << horses[i].GetLane() << "Lane: [" << horses[i].GetName() << "] 결승선 도착!   "
-                << std::fixed << std::setprecision(2) << horses[i].GetFinishTime() << "초 완주";
+            oss << std::setw(5) << horses[i].GetLane() << "레인: ["
+                << std::setw(10) << horses[i].GetName() << "] "
+                << "결승선 도착!   "
+                << std::fixed << std::setprecision(2)
+                << horses[i].GetFinishTime() << "초 완주";
 
             msg = oss.str();
             msg.resize(60, ' ');
             DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + i, msg.c_str());
         }
     }
+
     // 선두 말 출력
     if (leader != nullptr && !leader->IsFinish())
     {
         std::ostringstream leadStream;
-        leadStream << "현재 선두: " << leader->GetLane() << "레인 " << leader->GetName()
-            << " (위치 " << leader->GetPos().X << ")";
+        leadStream << "현재 선두: " << leader->GetLane() << "레인 "
+            << leader->GetName() << " (위치 "
+            << leader->GetPos().X << ")";
         std::string msg = leadStream.str();
         msg.resize(60, ' ');
         DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + HORSE_NUM, msg.c_str());
@@ -171,7 +180,9 @@ void RaceManager::PrintUI(DoubleBuffering& DB, Horse horses[])
     {
         std::ostringstream rankStream;
         std::string endLine = "🎉 경기 종료! 모든 말이 결승선을 통과했습니다! 🎉";
-        rankStream << "1위 : " << rank[0].GetName() << "  2위 : " << rank[1].GetName() << "   3위 : " << rank[2].GetName();
+        rankStream << "1위 : " << rank[0].GetName()
+            << "  2위 : " << rank[1].GetName()
+            << "   3위 : " << rank[2].GetName();
         DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 4 + HORSE_NUM, endLine.c_str());
         DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 5 + HORSE_NUM, rankStream.str().c_str());
     }
