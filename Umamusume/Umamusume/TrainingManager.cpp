@@ -1,167 +1,386 @@
 #include "TrainingManager.h"
 
-void TrainingManager::TrainingLoop(Horse& trainee)
+Horse TrainingManager::SelectTrainee()
 {
-	while (1)
+	Horse trainee;
+	while (true)
 	{
-		// 트레이닝
-		if(m_trainingStage % 5 != 0)
-		{ 
-			std::cout << "=======[ " << m_trainingStage << "일차 훈련 ]========" << std::endl;
-			std::cout << "1. 속도 훈련" << std::endl;
-			std::cout << "2. 지구력 훈련" << std::endl;
-			std::cout << "3. 지능 훈련" << std::endl;
-			std::cout << "=======================" << std::endl;
-			std::cout << ">> 선택: ";
+		std::cout << "육성할 말을 골라주세요!\n";
+		for (int i = 0; i < HORSETABLE_NUM; ++i)
+			std::cout << i + 1 << ". " << HorseName[i] << "  ";
+		std::cout << "\n당신의 말은??? ";
 
-			int selNum;
-			std::cin >> selNum;
+		int selNum;
+		std::cin >> selNum;
 
-			if (selNum < SPEED || selNum > INTELLIGENCE)
-			{
-				std::cout << "올바르지 않은 값입니다!! 다시 입력해주세요. (1~3)";
-				continue;
-			}
-			Training(trainee, (TrainingType)selNum);
-
-		}
-		// 레이스
-		else
+		if (selNum < 1 || selNum > HORSETABLE_NUM)
 		{
-
+			std::cout << "잘못된 번호!! 다시 입력해주세요.\n";
+			Sleep(500);
+			system("cls");
+			continue;
 		}
 
+		trainee.SetName(HorseName[selNum - 1]);
+		trainee.InitHorse();
+		trainee.SetBaseSpeed(0);
+		return trainee;
+	}
+}
 
+void TrainingManager::InitTrainingManager()
+{
+	m_trainingStage = 1;
+	m_trainMaxHp = 100;
+	m_trainHp = m_trainMaxHp;
+}
+
+void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList)
+{
+	trainee = SelectTrainee();
+	InitTrainingManager();
+
+	while (true)
+	{
+		system("cls");
+
+		if (m_trainingStage % 5 != 0) // 훈련일 때
+		{
+			PrintTrainingMenu(trainee);
+			int selNum = GetTrainingSelection();
+			if (selNum == REST)
+				Rest(trainee);
+			else
+				Training(trainee, static_cast<TrainingType>(selNum));
+		}
+		else // 레이스(미구현)
+		{
+			std::cout << "레이스 미구현\n";
+			m_trainingStage++;
+			Sleep(1000);
+		}
+
+		if (m_trainingStage == TRAINGING_DAYS)
+		{
+			PrintTrainingResult(trainee);
+			HandleSaveOrDiscard(trainee, PlayerList);
+			break;
+		}
+	}
+}
+
+void TrainingManager::PrintTrainingMenu(const Horse& trainee)
+{
+	std::cout << "          " << trainee.GetName() << "\n";
+	std::cout << "=======[ " << m_trainingStage++ << "일차 훈련 ]========\n";
+	std::cout << "1. 속도 훈련\n2. 지구력 훈련\n3. 지능 훈련\n4. 휴식\n";
+	std::cout << "=======================\n";
+	PrintStatus(trainee);
+	std::cout << ">> 선택: ";
+}
+
+int TrainingManager::GetTrainingSelection() const
+{
+	int selNum;
+	while (true)
+	{
+		std::cin >> selNum;
+		if (selNum >= SPEED && selNum <= REST)
+			return selNum;
+		std::cout << "올바르지 않은 값입니다!! 다시 입력해주세요. (1~4): ";
 	}
 }
 
 void TrainingManager::Training(Horse& trainee, TrainingType _type)
 {
-	float randFloat = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-	this->m_trainHp -= DECREASE_HP_TRAINING;
-	if (this->m_trainHp < 0)
-		this->m_trainHp = 0;
-	// 훈련 성공
+	DecreaseTrainingHp();
+
+	int increaseStat = 0;
+	int decreaseStat = 0;
+
+	float randFloat = static_cast<float>(rand()) / RAND_MAX;
 	if (TrainingProbability(m_trainHp, m_trainMaxHp) >= randFloat)
 	{
-		int increaseStat = 0 , success = 1;
-		randFloat = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		if (randFloat < 0.1f)
+		randFloat = static_cast<float>(rand()) / RAND_MAX;
+		if (randFloat < 0.2f) // 대성공
 		{
-			success = 2;
-			trainee.SetHorseCondition(EXCELLENT);
+			increaseStat = GetIncreaseAmount(_type) * 2;
+			IncreaseCondition(trainee);
+			StatChange(trainee, increaseStat, _type);
+			std::cout << "훈련 대성공!! " << increaseStat << "만큼 스탯이 상승했습니다!!\n";
+			std::cout << "컨디션이 한 단계 상승되었습니다!!\n";
 		}
-		// 훈련 성공 연출 보여주고
-		// 정해진 범위 값만큼 스탯 상승, 체력 감소
-		
-		if (_type == SPEED)
-			increaseStat = INCREASE_AMOUNT_SPEED * success;
-
-		else if (_type == STAMINA)
-			increaseStat = INCREASE_AMOUNT_STAMINA * success;
-
-		else if (_type == INTELLIGENCE)
-			increaseStat = INCREASE_AMOUNT_INTELLIGENCE * success;
-
-		StatChange(trainee, increaseStat, _type);
-		std::cout << "훈련 성공!! " << increaseStat << "만큼 상승했습니다!\n";
+		else // 성공
+		{
+			increaseStat = GetIncreaseAmount(_type);
+			StatChange(trainee, increaseStat, _type);
+			std::cout << "훈련 성공!! " << increaseStat << "만큼 상승했습니다!\n";
+		}
 		Sleep(2000);
 	}
-	// 훈련 실패
-	else
+	else // 실패
 	{
-		// 성공 시와 동일한 체력 감소 및 컨디션 하락, 이후 선택지 두 개 선택
-		// 1. 선택한 훈련에 해당하는 스탯 감소, 일정 확률로 대실패(컨디션 최하 & 모든 스탯 감소)
-		// 2. 재훈련, 성공하면 스탯 소폭 상승과 컨디션이 상승하나 실패시 무조건 대실패
-
-		// 훈련 실패 연출 보여주기
-		std::cout << "훈련에 실패했다.. 컨디션이 " << trainee.GetHorseCondition() << "에서 ";
-		int condition = (int)trainee.GetHorseCondition();
-		if (condition < 0)
-			trainee.SetHorseCondition((HorseCondition)--condition);
-		std::cout << trainee.GetHorseCondition() << "으로 감소했다 ㅠ\n";
-		
-		while(1)
-		{
-			std::cout << "1. 휴식을 하는게 맞아..\n";
-			std::cout << "2. 훈련을 강행해야돼!\n";
-			std::cout << "어떻게 하지? ";
-
-			int selNum;
-			std::cin >> selNum;
-			int decreaseStat = 0;
-			// 휴식
-			if (selNum == 1)
-			{
-				randFloat = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-				// 대실패
-				if (randFloat < 0.1f)
-				{
-					StatChange(trainee, decreaseStat, SPEED);
-					StatChange(trainee, decreaseStat, STAMINA);
-					StatChange(trainee, decreaseStat, INTELLIGENCE);
-					trainee.SetHorseCondition(VERYPOOR);
-					std::cout << "훈련 대실패!! " << decreaseStat << "만큼 모든 스탯이 감소했습니다!\n";
-					Sleep(2000);
-					break;
-				}
-				// 실패
-				StatChange(trainee, decreaseStat, _type);
-				std::cout << "훈련 실패!! " << decreaseStat << "만큼 스탯이 감소했습니다!\n";
-				Sleep(2000);
-				break;
-			}
-			// 훈련 재개
-			else if (selNum == 2)
-			{
-
-			}
-			else
-			{
-
-			}
-		}
-
-
+		HandleTrainingFailure(trainee, _type);
 	}
 }
 
-// 로그 함수로 훈련 성공 확률 감소
-float TrainingManager::TrainingProbability(int H, int MaxH)
+void TrainingManager::DecreaseTrainingHp()
 {
-	float x = H / (float)MaxH; // 0 ~ 1 정규화
+	m_trainHp -= DECREASE_HP_TRAINING;
+	if (m_trainHp < 0)
+		m_trainHp = 0;
+}
 
-	if (x >= 0.5f)
+int TrainingManager::GetIncreaseAmount(TrainingType type) const
+{
+	switch (type)
 	{
-		return 1.0f;  // 체력이 절반 이상이면 성공 확률 100%
+	case SPEED: return INCREASE_AMOUNT_SPEED;
+	case STAMINA: return INCREASE_AMOUNT_STAMINA;
+	case INTELLIGENCE: return INCREASE_AMOUNT_INTELLIGENCE;
+	default: return 0;
+	}
+}
+
+int TrainingManager::GetDecreaseAmount(TrainingType type) const
+{
+	switch (type)
+	{
+	case SPEED: return DECREASE_AMOUNT_SPEED;
+	case STAMINA: return DECREASE_AMOUNT_STAMINA;
+	case INTELLIGENCE: return DECREASE_AMOUNT_INTELLIGENCE;
+	default: return 0;
+	}
+}
+
+void TrainingManager::IncreaseCondition(Horse& trainee)
+{
+	int condition = static_cast<int>(trainee.GetHorseCondition());
+	if (condition >= VERYPOOR && condition < EXCELLENT)
+		trainee.SetHorseCondition(static_cast<HorseCondition>(condition + 1));
+}
+
+void TrainingManager::DecreaseCondition(Horse& trainee)
+{
+	int condition = static_cast<int>(trainee.GetHorseCondition());
+	if (condition > VERYPOOR)
+		trainee.SetHorseCondition(static_cast<HorseCondition>(condition - 1));
+}
+
+void TrainingManager::HandleTrainingFailure(Horse& trainee, TrainingType _type)
+{
+	std::cout << "훈련에 실패했다.. 컨디션이 " << PrintCondition(trainee) << "에서 ";
+	DecreaseCondition(trainee);
+	std::cout << PrintCondition(trainee) << "으로 감소했다...\n";
+
+	while (true)
+	{
+		std::cout << "1. 휴식을 하는게 맞아..\n2. 훈련을 강행해야돼!\n어떻게 하지? ";
+
+		int selNum;
+		std::cin >> selNum;
+
+		if (selNum == 1)
+		{
+			HandleRestDuringFailure(trainee, _type);
+			break;
+		}
+		else if (selNum == 2)
+		{
+			HandleRetryTraining(trainee, _type);
+			break;
+		}
+		else
+		{
+			std::cout << "올바른 값을 입력해주세요!\n";
+			system("pause");
+			system("cls");
+		}
+	}
+}
+
+void TrainingManager::HandleRestDuringFailure(Horse& trainee, TrainingType _type)
+{
+	float randFloat = static_cast<float>(rand()) / RAND_MAX;
+	if (randFloat < 0.1f) // 대실패
+	{
+		ApplyCriticalFailure(trainee);
+		std::cout << "훈련 대실패!! 모든 스탯이 감소했습니다!\n";
+		std::cout << "컨디션이 최악으로 변경되었습니다..\n";
 	}
 	else
 	{
-		// 체력이 절반 미만일 경우 감소
-		const float a = 9.0f; // 조절 상수 (값이 클수록 급격히 감소)
-		float adjustedX = x * 2.0f; // 0.0 ~ 1.0로 다시 정규화 (0.5 -> 1.0, 0 -> 0)
-		float numerator = std::log(a * adjustedX + 1.0f);
-		float denominator = std::log(a + 1.0f);
-
-		return numerator / denominator; // 0 ~ 1 사이 확률 반환
+		int decreaseStat = GetDecreaseAmount(_type);
+		StatChange(trainee, decreaseStat, _type);
+		std::cout << "훈련 실패!! " << decreaseStat << "만큼 스탯이 감소했습니다!\n";
 	}
+	Sleep(2000);
+}
+
+void TrainingManager::HandleRetryTraining(Horse& trainee, TrainingType _type)
+{
+	std::cout << "훈련 재개!!\n";
+	float randFloat = static_cast<float>(rand()) / RAND_MAX;
+	Sleep(500);
+
+	if (randFloat < 0.2f) // 재훈련 성공
+	{
+		int increaseStat = GetIncreaseAmount(_type);
+		StatChange(trainee, increaseStat, _type);
+		IncreaseCondition(trainee);
+
+		std::cout << "재훈련 성공! 컨디션이 " << PrintCondition(trainee) << "에서 ";
+		std::cout << PrintCondition(trainee) << "으로 상승했다!\n";
+	}
+	else // 재훈련 실패, 대실패
+	{
+		ApplyCriticalFailure(trainee);
+		std::cout << "재훈련 실패! 모든 스탯이 감소했습니다!\n";
+		std::cout << "컨디션이 최악으로 변경되었습니다..\n";
+	}
+	Sleep(2000);
+}
+
+void TrainingManager::ApplyCriticalFailure(Horse& trainee)
+{
+	int decreaseStat = DECREASE_CRITICAL_CASE;
+	StatChange(trainee, decreaseStat, SPEED);
+	StatChange(trainee, decreaseStat, STAMINA);
+	StatChange(trainee, decreaseStat, INTELLIGENCE);
+	trainee.SetHorseCondition(VERYPOOR);
+}
+
+void TrainingManager::Rest(Horse& trainee)
+{
+	float randFloat = static_cast<float>(rand()) / RAND_MAX;
+	int condition = static_cast<int>(trainee.GetHorseCondition());
+
+	if (randFloat > 0.3f) // 일반 휴식
+	{
+		RecoverTrainHp(INCREASE_AMOUNT_TRAINHP);
+		std::cout << "휴식을 취했다! 체력이 " << INCREASE_AMOUNT_TRAINHP << "만큼 회복됐다!\n";
+		std::cout << "컨디션이 " << PrintCondition(trainee) << "에서 ";
+		IncreaseCondition(trainee);
+		std::cout << PrintCondition(trainee) << "으로 상승했다!\n";
+	}
+	else if (randFloat > 0.1f) // 대성공 휴식
+	{
+		RecoverTrainHp(INCREASE_AMOUNT_TRAINHP + 20);
+		std::cout << "휴식을 취했다! 잠을 푹 잤다. 체력이 " << INCREASE_AMOUNT_TRAINHP + 20 << "만큼 회복됐다!\n";
+		std::cout << "컨디션이 " << PrintCondition(trainee) << "에서 ";
+		trainee.SetHorseCondition(EXCELLENT);
+		std::cout << PrintCondition(trainee) << "으로 상승했다!\n";
+	}
+	else // 휴식 보너스 감소
+	{
+		RecoverTrainHp(INCREASE_AMOUNT_TRAINHP - 20);
+		std::cout << "휴식을 취했다! 제대로 잠을 자지 못했다. 체력이 " << INCREASE_AMOUNT_TRAINHP - 20 << "만큼 회복됐다!\n";
+	}
+	Sleep(1500);
+}
+
+void TrainingManager::RecoverTrainHp(int amount)
+{
+	m_trainHp += amount;
+	if (m_trainHp > m_trainMaxHp)
+		m_trainHp = m_trainMaxHp;
+}
+
+void TrainingManager::PrintStatus(const Horse& trainee) const
+{
+	std::cout << "현재 체력 : " << m_trainHp;
+	std::cout << "    컨디션 : " << PrintCondition(trainee) << "\n";
+
+	std::cout << std::setw(10) << std::left << "스피드 : " << trainee.GetBaseSpeed()
+		<< std::setw(12) << std::left << "  스태미나 : " << trainee.GetMaxStamina()
+		<< std::setw(10) << std::left << "  지능 : " << trainee.GetIntel() << "\n\n";
+}
+
+std::string TrainingManager::PrintCondition(const Horse& trainee) const
+{
+	switch (trainee.GetHorseCondition())
+	{
+	case VERYPOOR: return "최저";
+	case POOR: return "낮음";
+	case FEELSOSO: return "보통";
+	case GOOD: return "양호";
+	case EXCELLENT: return "최상";
+	default: return "알수없음";
+	}
+}
+
+float TrainingManager::TrainingProbability(int H, int MaxH) const
+{
+	float x = static_cast<float>(H) / MaxH;
+
+	if (x >= 0.5f)
+		return 1.0f;
+
+	const float a = 9.0f;
+	float adjustedX = x * 2.0f;
+	float numerator = std::log(a * adjustedX + 1.0f);
+	float denominator = std::log(a + 1.0f);
+	return numerator / denominator;
 }
 
 void TrainingManager::StatChange(Horse& trainee, int statModifier, TrainingType _type)
 {
 	if (_type == SPEED)
 	{
-		statModifier += trainee.GetBaseSpeed();
-		trainee.SetBaseSpeed(statModifier);
+		int newSpeed = trainee.GetBaseSpeed() + statModifier;
+		trainee.SetBaseSpeed(newSpeed < 0 ? 0 : newSpeed);
 	}
 	else if (_type == STAMINA)
 	{
-		statModifier += trainee.GetMaxHp();
-		trainee.SetMaxHp(statModifier);
+		float newStamina = trainee.GetMaxStamina() + statModifier;
+		trainee.SetMaxStamina(newStamina < 0 ? 0 : newStamina);
 	}
 	else if (_type == INTELLIGENCE)
 	{
-		statModifier += trainee.GetIntel();
-		trainee.SetIntel(statModifier);
+		int newIntel = trainee.GetIntel() + statModifier;
+		trainee.SetIntel(newIntel < 0 ? 0 : newIntel);
+	}
+}
+
+void TrainingManager::SaveHorse(const Horse& trainee, std::vector<Horse>& PlayerList)
+{
+	PlayerList.push_back(trainee);
+}
+
+void TrainingManager::PrintTrainingResult(const Horse& trainee) const
+{
+	std::cout << trainee.GetName() << " 육성 완료!!\n\n";
+	std::cout << "최종 스탯\n\n";
+
+	std::cout << std::left;
+	std::cout << std::setw(12) << "스피드" << ": " << std::setw(6) << trainee.GetBaseSpeed() << "\n";
+	std::cout << std::setw(12) << "스태미나" << ": " << std::setw(6) << trainee.GetMaxStamina() << "\n";
+	std::cout << std::setw(12) << "지능" << ": " << std::setw(6) << trainee.GetIntel() << "\n\n";
+}
+
+void TrainingManager::HandleSaveOrDiscard(Horse& trainee, std::vector<Horse>& PlayerList)
+{
+	while (true)
+	{
+		char yOrn;
+		std::cout << "우마무스메를 저장하시겠습니까?? (Y / N) ";
+		std::cin >> yOrn;
+
+		if (yOrn == 'Y' || yOrn == 'y')
+		{
+			SaveHorse(trainee, PlayerList);
+			break;
+		}
+		else if (yOrn == 'N' || yOrn == 'n')
+		{
+			std::cout << "안녕 " << trainee.GetName() << "....\n";
+			break;
+		}
+		else
+		{
+			std::cout << "잘못된 입력입니다.\n";
+			Sleep(1000);
+			system("cls");
+		}
 	}
 }

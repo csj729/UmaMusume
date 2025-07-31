@@ -135,7 +135,7 @@ void RaceManager::PrintUI(DoubleBuffering& DB, Horse horses[])
             line << std::setw(5) << horses[i].GetLane() << "레인: ["
                 << std::setw(12) << horses[i].GetName() << "] "
                 << "위치: " << std::setw(4) << horses[i].GetPos().X
-                << "   기력: " << std::fixed << std::setprecision(1) << std::setw(5) << horses[i].GetHp()
+                << "   기력: " << std::fixed << std::setprecision(1) << std::setw(5) << horses[i].GetStamina()
                 << "   속도: " << std::setw(3) << horses[i].GetRealSpeed();
 
             const Skill* activeSkill = horses[i].GetActiveSkill();

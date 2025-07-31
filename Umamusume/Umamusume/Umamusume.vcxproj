@@ -125,6 +125,7 @@
   <ItemGroup>
     <ClCompile Include="Defines.h" />
     <ClCompile Include="DoubleBuffering.cpp" />
+    <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Horse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
@@ -135,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DoubleBuffering.h" />
+    <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Horse.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="RaceManager.h" />

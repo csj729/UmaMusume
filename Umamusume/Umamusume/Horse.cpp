@@ -228,7 +228,7 @@ void Horse::HorseTick(int leader_X, float deltaTime)
 
 				if (!hpRecoveredThisTick)
 				{
-					m_stamina += skill.GetHp();
+					m_stamina += skill.GetStamina();
 					if (m_stamina > m_MaxStamina) m_stamina = m_MaxStamina;
 					hpRecoveredThisTick = true;
 				}
@@ -250,6 +250,13 @@ void Horse::CheckFinish()
 {
 	if (m_Position.X >= FinishLine)
 		isFinish = true;
+}
+
+const Skill* Horse::GetSkill(int index) const
+{
+	if (index >= 0 && index < SKILL_NUM)
+		return &m_skillList[index];
+	return nullptr;
 }
 
 const Skill* Horse::GetActiveSkill() const

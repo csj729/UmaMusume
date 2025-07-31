@@ -5,6 +5,8 @@
 #include "Skill.h"
 #include "Map.h"
 #include "RaceManager.h"
+#include "TrainingManager.h"
+#include "FileSystem.h"
 
 static Tile BG[DF_BG_SIZE_Y][DF_BG_SIZE_X];
 static Map map;
@@ -12,6 +14,9 @@ static DoubleBuffering DB;
 static Horse horses[HORSE_NUM];
 static float deltaTime = 0.0f;
 static RaceManager RM(&map);
+static TrainingManager TM;
+static Horse player;
+static std::vector<Horse> PlayerList;
 
 static char LOGO[21][80] =
 {
@@ -23,6 +28,52 @@ static char LOGO[21][80] =
 {"| |\  \   | |_\ \  | | | | | |_\ \ | | | | | |  | | | |___"},
 {"\_| \_/    \____/  \_| |_/  \____/ \_| |_/ \_|  |_/ \____/"},
 };
+
+std::string GetHorseTypeName(HorseType type)
+{
+    switch (type)
+    {
+    case LEADER: return "선행";
+    case CLOSER: return "추입";
+    case STALKER: return "선입";
+    case PACESETTER: return "도주";
+    default: return "???";
+    }
+}
+
+void PrintPlayerList(const std::vector<Horse>& PlayerList)
+{
+    std::cout << "======================================================================================\n";
+    std::cout << " No. 이름          타입   속도  스태미나  지능   스킬 목록\n";
+    std::cout << "======================================================================================\n";
+
+    for (size_t i = 0; i < PlayerList.size(); ++i)
+    {
+        const Horse& horse = PlayerList[i];
+
+        // 기본 정보 열 너비 계산
+        std::ostringstream oss;
+        oss << std::left
+            << std::setw(4) << i + 1
+            << std::setw(14) << horse.GetName()
+            << std::setw(8) << GetHorseTypeName(horse.GetHorseType())
+            << std::setw(6) << horse.GetBaseSpeed()
+            << std::setw(10) << horse.GetMaxStamina()
+            << std::setw(7) << horse.GetIntel();
+
+        std::string baseLine = oss.str();
+        std::cout << baseLine << "- " << horse.GetSkill(0)->GetName() << "\n";
+
+        // 나머지 스킬 출력 시 위의 스킬 출력과 같은 열 공백 맞춤
+        for (int j = 1; j < SKILL_NUM; ++j)
+        {
+            std::cout << std::setw(baseLine.length()) << " "
+                << "- " << horse.GetSkill(j)->GetName() << "\n";
+        }
+
+        std::cout << "--------------------------------------------------------------------------------------\n";
+    }
+}
 
 void PrintScreen()
 {
@@ -40,7 +91,8 @@ void PrintMainMenu_Console()
     std::cout << "2. 경주 시작\n";
     std::cout << "3. 저장\n";
     std::cout << "4. 불러오기\n";
-    std::cout << "5. 종료\n";
+    std::cout << "5. 육성 우마무스메 리스트\n";
+    std::cout << "6. 종료\n";
     std::cout << "=============================================================\n";
     std::cout << ">> 선택: ";
 }
@@ -98,8 +150,7 @@ void SelectAction()
     switch (selNum)
     {
     case TRAINING:
-        std::cout << "\n[ 트레이닝 시스템은 아직 구현되지 않았습니다. ]\n";
-        system("pause");
+        TM.TrainingLoop(player, PlayerList);
         break;
 
     case RACE:
@@ -124,21 +175,32 @@ void SelectAction()
         break;
 
     case SAVE:
-        std::cout << "\n[ 저장 시스템은 아직 구현되지 않았습니다. ]\n";
+        if (FileSystem::SavePlayerList("PlayerList.dat", PlayerList))
+            std::cout << "\n[ 저장 성공 ]\n";
+        else
+            std::cout << "\n[ 저장 실패 ]\n";
         system("pause");
         break;
 
     case LOAD:
-        std::cout << "\n[ 불러오기 시스템은 아직 구현되지 않았습니다. ]\n";
+        if (FileSystem::LoadPlayerList("PlayerList.dat", PlayerList))
+            std::cout << "\n[ 불러오기 성공 ]\n";
+        else
+            std::cout << "\n[ 불러오기 실패 ]\n";
         system("pause");
         break;
 
+    case UMALIST:
+        system("cls");
+        PrintPlayerList(PlayerList);
+        system("pause");
+        break;
     case FINISH:
         std::cout << "게임을 종료합니다.\n";
         exit(0);
 
     default:
-        std::cout << "1~5번 중에서 선택해주세요.\n";
+        std::cout << "1~6번 중에서 선택해주세요.\n";
         system("pause");
         break;
     }
