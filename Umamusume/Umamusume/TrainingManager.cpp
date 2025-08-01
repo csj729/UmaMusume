@@ -35,16 +35,16 @@ void TrainingManager::InitTrainingManager()
 	m_trainHp = m_trainMaxHp;
 }
 
-void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList)
+void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList, RaceManager& RM, DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X], Horse* AI_horse[])
 {
 	trainee = SelectTrainee();
 	InitTrainingManager();
 
-	while (true)
+	while (m_trainingStage <= TRAINGING_DAYS)
 	{
 		system("cls");
 
-		if (m_trainingStage % 5 != 0) // 훈련일 때
+		if (m_trainingStage % 5 != 0) // 훈련
 		{
 			PrintTrainingMenu(trainee);
 			int selNum = GetTrainingSelection();
@@ -53,20 +53,46 @@ void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerLis
 			else
 				Training(trainee, static_cast<TrainingType>(selNum));
 		}
-		else // 레이스(미구현)
+		else // 레이스
 		{
-			std::cout << "레이스 미구현\n";
+			Horse* RaceHorses[HORSE_NUM];
+
+			RM.RunRace(DB, _BG, RaceHorses, trainee);
+			if (&trainee == RM.GetRankedHorse(0))
+			{
+				StatChange(trainee, 3, SPEED);
+				StatChange(trainee, 3, STAMINA);
+				StatChange(trainee, 30, INTELLIGENCE);
+				SetSP(GetSP() + 50);
+			}
+
+			else if (&trainee == RM.GetRankedHorse(1))
+			{
+				StatChange(trainee, 2, SPEED);
+				StatChange(trainee, 2, STAMINA);
+				StatChange(trainee, 20, INTELLIGENCE);
+				SetSP(GetSP() + 50);
+			}
+
+			else if (&trainee == RM.GetRankedHorse(2))
+			{
+				StatChange(trainee, 1, SPEED);
+				StatChange(trainee, 1, STAMINA);
+				StatChange(trainee, 10, INTELLIGENCE);
+				SetSP(GetSP() + 50);
+			}
+
+			else
+				SetSP(GetSP() + 50);
+
 			m_trainingStage++;
-			Sleep(1000);
+			
 		}
 
-		if (m_trainingStage == TRAINGING_DAYS)
-		{
-			PrintTrainingResult(trainee);
-			HandleSaveOrDiscard(trainee, PlayerList);
-			break;
-		}
 	}
+
+	PrintTrainingResult(trainee);
+	HandleSaveOrDiscard(trainee, PlayerList);
 }
 
 void TrainingManager::PrintTrainingMenu(const Horse& trainee)
@@ -379,8 +405,8 @@ void TrainingManager::HandleSaveOrDiscard(Horse& trainee, std::vector<Horse>& Pl
 		else
 		{
 			std::cout << "잘못된 입력입니다.\n";
-			Sleep(1000);
 			system("cls");
 		}
+		Sleep(1000);
 	}
 }

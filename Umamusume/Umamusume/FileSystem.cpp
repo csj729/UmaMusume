@@ -74,7 +74,7 @@ bool FileSystem::LoadPlayerList(const std::string& filename, std::vector<Horse>&
         horse.SetIntel(intel);
 
         // ½ºÅ³
-        Skill skillList[SKILL_NUM];
+        std::vector<Skill> skillList(SKILL_NUM);
         for (int j = 0; j < SKILL_NUM; ++j)
         {
             size_t skillNameLen;

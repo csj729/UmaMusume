@@ -15,5 +15,9 @@ public:
 	void ScreenRelease();
 	void ScreenClear();
 	void ScreenPrint(Tile(*_BG)[DF_BG_SIZE_X]);
+	void PrintScreen(Tile(*_BG)[DF_BG_SIZE_X]);
+	void ClearScreen(Tile(*_BG)[DF_BG_SIZE_X]);
+
+
 };
 

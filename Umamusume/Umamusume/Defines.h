@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
+#include <map>
 
 // 배경 크기
 #define DF_BG_SIZE_X 200
@@ -21,7 +22,7 @@
 #define LANE_NUM 4
 #define TRACK_START_Y 0     // 트랙의 시작 Y 좌표
 #define START_LINE_X 3
-#define SCROLL_SIZE 5000	// 트랙 길이
+#define SCROLL_SIZE 2000	// 트랙 길이
 
 // 플레이 오브젝트 관련
 #define HORSE_NUM 4

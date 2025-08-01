@@ -103,3 +103,26 @@ void DoubleBuffering::ScreenRelease()
 	CloseHandle(g_hScreen[0]);
 	CloseHandle(g_hScreen[1]);
 }
+
+void DoubleBuffering::PrintScreen(Tile(*_BG)[DF_BG_SIZE_X])
+{
+	//끝자리에 '\0'널문자 넣어서 출력가능하도록
+	_BG[DF_BG_SIZE_Y - 1][DF_BG_SIZE_X - 1].Text = '\0';
+	ScreenClear();  //버퍼 초기화
+	ScreenPrint(_BG); //내꺼 출력
+	ScreenFlipping(); //버퍼 교체
+}
+
+//내거 2차원 배열
+void DoubleBuffering::ClearScreen(Tile(*_BG)[DF_BG_SIZE_X])
+{
+	unsigned short BaseColor = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN;
+	for (int y = 0; y < DF_BG_SIZE_Y; ++y)
+	{
+		for (int x = 0; x < DF_BG_SIZE_X; ++x)
+		{
+			_BG[y][x].Text = ' ';
+			_BG[y][x].Color = BaseColor;
+		}
+	}
+}

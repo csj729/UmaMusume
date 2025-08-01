@@ -1,5 +1,6 @@
 #pragma once
 #include "Defines.h"
+#include "RaceManager.h"
 #include "Horse.h"
 
 // 상수 정의 (필요하면 constexpr 등으로 변경 가능)
@@ -12,7 +13,7 @@
 #define DECREASE_AMOUNT_INTELLIGENCE -5
 #define DECREASE_CRITICAL_CASE -5
 #define INCREASE_AMOUNT_TRAINHP 50
-#define TRAINGING_DAYS 11
+#define TRAINGING_DAYS 10
 
 enum TrainingType
 {
@@ -29,6 +30,7 @@ private:
     int m_trainingStage = 1;
     int m_trainMaxHp = 100;
     int m_trainHp = m_trainMaxHp;
+    int m_SP = 0;
 
     // --- 내부 헬퍼 함수 ---
     int GetIncreaseAmount(TrainingType type) const;
@@ -62,9 +64,17 @@ public:
     // --- 주요 동작 ---
     Horse SelectTrainee();
     void InitTrainingManager();
-    void TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList);
+    void TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList,
+        RaceManager& RM, DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X],
+        Horse* AI_horse[]);
     void Training(Horse& trainee, TrainingType _type);
     void Rest(Horse& trainee);
     float TrainingProbability(int H, int MaxH) const;
     void StatChange(Horse& trainee, int statModifier, TrainingType _type);
+
+    // --- Set 함수 ---
+    void SetSP(int _SP) { m_SP = _SP; }
+
+    // --- Get 함수 ---
+    int GetSP() const { return m_SP; }
 };

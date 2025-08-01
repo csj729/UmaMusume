@@ -18,13 +18,14 @@ enum HorseVitality
     NORMAL,
     ENERGETIC
 };
-
+    
 enum HorseType
 {
     PACESETTER, // 도주
     LEADER,     // 선행
     STALKER,    // 선입
-    CLOSER      // 추입
+    CLOSER,      // 추입
+    NONE
 };
 
 enum HorseCondition
@@ -34,6 +35,51 @@ enum HorseCondition
     FEELSOSO,
     GOOD,
     EXCELLENT
+};
+
+struct HorseData
+{
+    int baseSpeed;
+    float maxStamina;
+    HorseType type;
+    std::vector<Skill> skills;
+
+    HorseData(int spd, float sta, HorseType t, std::initializer_list<Skill> skillList)
+        : baseSpeed(spd), maxStamina(sta), type(t), skills(skillList) {
+    }
+};
+
+const std::map<std::string, HorseData> HorseDataTable = 
+{
+    {   HorseName[0],
+        {5, 30.0f, LEADER, 
+            {
+                Skill("존귀한 사명을 완수하기 위하여", 15, 1.0f, 0.0f, 10.0f),
+                Skill("스태미너 킵", 1, 0.8f, 3.0f, 1.0f),
+                Skill("속도 유지", 2, 0.6f, 0.0f, 4.0f)
+            }
+        }
+    },
+
+    {    HorseName[1],
+        {5, 30.0f, CLOSER,
+            {
+                Skill("불침함, 출항!!", 15, 0.5f, 0.0f, 5.0f),
+                Skill("추격", 4, 0.5f, 0.0f, 5.0f),
+                Skill("후방 대기", 1, 0.8f, 1.0f, 5.0f)
+            }
+        }
+    },
+    { HorseName[2], {5, 30.0f, STALKER, {
+        Skill("승리의 고동", 15, 0.5f, 0.0f, 5.0f),
+        Skill("속도 가속", 2, 0.8f, 0.0f, 5.0f),
+        Skill("영양 보급", 0, 0.5f, 2.0f, 1.0f)
+    }}},
+    { HorseName[3], {5, 30.0f, PACESETTER, {
+        Skill("홍염 기어/LP1211-M", 13, 0.5f, 0.0f, 6.0f),
+        Skill("앞장서기", 2, 0.6f, 0.0f, 5.0f),
+        Skill("기어 시프트", 1, 0.8f, 0.0f, 5.0f)
+    }}}
 };
 
 class Horse
@@ -47,7 +93,7 @@ private:
     float m_stamina;
     int m_intelligence;
     COORD m_Position;
-    Skill m_skillList[SKILL_NUM];
+    std::vector<Skill> m_skillList;
     bool isFinish;
     bool isRanked = false;
     int m_lane;
@@ -78,6 +124,7 @@ public:
     // --- 기능 함수 ---
     void HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX);
     void InitHorse();
+    void InitByName(const std::string& name);
     std::string SelectName(const std::string horseName[]);
     void HorseTick(int leader_X, float deltaTime);
     void CheckFinish();
@@ -96,21 +143,19 @@ public:
     }
     void SetSkill(int index, const Skill& skill)
     {
-        if (index >= 0 && index < SKILL_NUM) 
+        if (index >= 0 && index < SKILL_NUM)
             m_skillList[index] = skill;
     }
-    void SetSkills(const Skill newSkills[SKILL_NUM])
+    void SetSkills(const std::vector<Skill>& newSkills)
     {
-        for (int i = 0; i < SKILL_NUM; ++i)
-        {
-            m_skillList[i] = newSkills[i];
-        }
+        m_skillList = newSkills; // 벡터 대입으로 복사
     }
     void SetHorseType(HorseType type) { m_type = type; };
     void SetLane(const int Newlane) { m_lane = Newlane; }
     void SetRanked(bool val) { isRanked = val; }
     void SetFinishTime(float time) { m_finishTime = time; }
     void SetHorseCondition(HorseCondition Newcondition) { m_condition = Newcondition; }
+    void SetFinish(bool val) { isFinish = val; }
 
     // --- 접근자 (Getter) ---
     const Skill* GetSkill(int index) const;
@@ -128,4 +173,5 @@ public:
     float GetFinishTime() const { return m_finishTime; }
     HorseCondition GetHorseCondition() const { return m_condition; }
     HorseType GetHorseType() const { return m_type; }
+    std::string GetHorseTypeName() const;
 };

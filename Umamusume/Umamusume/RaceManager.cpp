@@ -6,40 +6,58 @@ RaceManager::RaceManager(Map* map)
     startClock = prevClock = clock();
 }
 
-void RaceManager::InitRace(Horse horses[])
+void RaceManager::InitRace(Horse* horses[], Horse& trainee)
 {
     rankIndex = 0;
     isRaceFinished = false;
     leader = nullptr;
     startClock = prevClock = clock();
 
-    // 중복된 말 없이 뽑아서 horses 배열에 넣기
+    // --- 1. 이름 섞기 및 trainee 위치 결정 ---
     std::vector<std::string> shuffledNames(HorseName, HorseName + HORSETABLE_NUM);
-
-    // 이름 섞기
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(shuffledNames.begin(), shuffledNames.end(), g);
 
+    std::uniform_int_distribution<> dist(0, HORSE_NUM - 1);
+    int traineeIndex = dist(g);
+    this->playerIndex = traineeIndex;
+
+    // --- 2. horses[] 초기화 ---
+    int nameIdx = 0;
     for (int i = 0; i < HORSE_NUM; ++i)
     {
-        horses[i].SetName(shuffledNames[i]);
+        if (i == traineeIndex)
+        {
+            horses[i] = &trainee;
+        }
+        else
+        {
+            horses[i] = new Horse();
+            horses[i]->InitByName(shuffledNames[nameIdx++]);
+        }
     }
 
-    // 뽑힌 말 이름을 비교해 초기화
+    // --- 3. 위치 및 레인 설정 ---
     for (int i = 0; i < HORSE_NUM; i++)
     {
         int laneStartY = TRACK_START_Y + (LANE_HEIGHT + LANE_SPACING) * i;
         int horseTopY = laneStartY + (LANE_HEIGHT) / 2;
 
-        horses[i].InitHorse();
-        horses[i].SetPos(START_LINE_X, horseTopY + 2); // 중앙을 기준으로 Y좌표 설정
-        horses[i].SetLane(i + 1);
+        horses[i]->SetPos(START_LINE_X, horseTopY + 2);
+        horses[i]->SetLane(i + 1);
+        // 플레이어 상태 초기화
+        if (horses[i] == &trainee)
+        {
+            horses[i]->SetFinishTime(0.0f);
+            horses[i]->SetStamina(horses[i]->GetMaxStamina());
+            horses[i]->SetRanked(false);
+            horses[i]->SetFinish(false);
+        }
     }
-
 }
 
-void RaceManager::RaceTick(Horse horses[])
+void RaceManager::RaceTick(Horse* horses[])
 {
     clock_t now = clock();
     float deltaTime = static_cast<float>(now - prevClock) / CLOCKS_PER_SEC;
@@ -52,16 +70,16 @@ void RaceManager::RaceTick(Horse horses[])
 
     // 말들 Tick 처리
     for (int i = 0; i < HORSE_NUM; ++i)
-        horses[i].HorseTick(leaderX, deltaTime);
+        horses[i]->HorseTick(leaderX, deltaTime);
 
     // 리더 재계산
     Horse* newLeader = nullptr;
     for (int i = 0; i < HORSE_NUM; ++i)
     {
-        if (!horses[i].IsFinish())
+        if (!horses[i]->IsFinish())
         {
-            if (newLeader == nullptr || horses[i].GetPos().X > newLeader->GetPos().X)
-                newLeader = &horses[i];
+            if (newLeader == nullptr || horses[i]->GetPos().X > newLeader->GetPos().X)
+                newLeader = horses[i];
         }
     }
 
@@ -78,7 +96,7 @@ void RaceManager::RaceTick(Horse horses[])
                 float elapsedTime = static_cast<float>(now - startClock) / CLOCKS_PER_SEC;
                 leader->SetFinishTime(elapsedTime);
                 leader->SetRanked(true);
-                rank[rankIndex++] = *leader;
+                rank[rankIndex++] = leader;
             }
         }
 
@@ -99,11 +117,11 @@ const Horse* RaceManager::GetRankedHorse(int index) const
 {
 
     if (index >= 0 && index < rankIndex)
-        return &rank[index];
+        return rank[index];
     return nullptr;
 }
 
-void RaceManager::Render(Tile(*BG)[DF_BG_SIZE_X], Horse horses[])
+void RaceManager::Render(Tile(*BG)[DF_BG_SIZE_X], Horse* horses[])
 {
     if (pMap) {
         pMap->MapRender(BG); // Map 렌더링 추가
@@ -111,11 +129,11 @@ void RaceManager::Render(Tile(*BG)[DF_BG_SIZE_X], Horse horses[])
 
     for (int i = 0; i < HORSE_NUM; ++i)
     {
-        horses[i].HorseRender(BG, pMap->GetScrollX());
+        horses[i]->HorseRender(BG, pMap->GetScrollX());
     }
 }
 
-void RaceManager::PrintUI(DoubleBuffering& DB, Horse horses[])
+void RaceManager::PrintUI(DoubleBuffering& DB, Horse* horses[])
 {
     // UI 헤더 라인
     DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 1, "========================[ 경기 정보 ]========================");
@@ -125,65 +143,112 @@ void RaceManager::PrintUI(DoubleBuffering& DB, Horse horses[])
     scrollStream << "스크롤 위치: " << pMap->GetScrollX();
     DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 2, scrollStream.str().c_str());
 
+    const int baseWidth = 80; // 기본 출력 너비
+    const int skillExtraWidth = 30; // 스킬명 최대 예상 너비
+
     for (int i = 0; i < HORSE_NUM; ++i)
     {
         std::ostringstream line;
         std::string msg;
 
-        if (!horses[i].IsFinish())
-        {
-            line << std::setw(5) << horses[i].GetLane() << "레인: ["
-                << std::setw(12) << horses[i].GetName() << "] "
-                << "위치: " << std::setw(4) << horses[i].GetPos().X
-                << "   기력: " << std::fixed << std::setprecision(1) << std::setw(5) << horses[i].GetStamina()
-                << "   속도: " << std::setw(3) << horses[i].GetRealSpeed();
+        bool isPlayer = (i == playerIndex);
 
-            const Skill* activeSkill = horses[i].GetActiveSkill();
-            if (activeSkill != nullptr)
+        if (!horses[i]->IsFinish())
+        {
+            line << std::setw(5) << horses[i]->GetLane() << "레인: ["
+                << std::setw(12) << horses[i]->GetName() << "] "
+                << "위치: " << std::setw(4) << horses[i]->GetPos().X
+                << "   기력: " << std::fixed << std::setprecision(1) << std::setw(5) << horses[i]->GetStamina()
+                << "   속도: " << std::setw(3) << horses[i]->GetRealSpeed();
+
+            const Skill* activeSkill = horses[i]->GetActiveSkill();
+            if (!isRaceFinished && activeSkill != nullptr && activeSkill->IsActive())
             {
-                line << "   ⚡스킬: " << activeSkill->GetName();
+                    line << "   *스킬: " << activeSkill->GetName();
             }
 
             msg = line.str();
-            msg.resize(100, ' ');  // 너비 고정
+            msg = (isPlayer ? "Player▶" : "        ") + msg;
+
+            // 스킬명이 있으면 더 넓게 출력, 없으면 기본 너비
+            int width = (activeSkill != nullptr) ? baseWidth + skillExtraWidth : baseWidth;
+            if ((int)msg.length() < width)
+                msg.resize(width, ' ');
+
             DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + i, msg.c_str());
         }
         else
         {
             std::ostringstream oss;
-            oss << std::setw(5) << horses[i].GetLane() << "레인: ["
-                << std::setw(10) << horses[i].GetName() << "] "
+            oss << std::setw(5) << horses[i]->GetLane() << "레인: ["
+                << std::setw(12) << horses[i]->GetName() << "] "
                 << "결승선 도착!   "
                 << std::fixed << std::setprecision(2)
-                << horses[i].GetFinishTime() << "초 완주";
+                << horses[i]->GetFinishTime() << "초 완주";
 
             msg = oss.str();
-            msg.resize(60, ' ');
+            msg = (isPlayer ? "Player▶" : "        ") + msg;
+
+            msg.resize(baseWidth, ' ');
             DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + i, msg.c_str());
         }
     }
 
-    // 선두 말 출력
+    // 선두 출력
     if (leader != nullptr && !leader->IsFinish())
     {
         std::ostringstream leadStream;
-        leadStream << "현재 선두: " << leader->GetLane() << "레인 "
-            << leader->GetName() << " (위치 "
-            << leader->GetPos().X << ")";
+        leadStream << "현재 선두: " << std::setw(2) << leader->GetLane() << "레인 "
+            << std::setw(12) << leader->GetName() << " (위치 "
+            << std::setw(4) << leader->GetPos().X << ")";
         std::string msg = leadStream.str();
-        msg.resize(60, ' ');
+        msg.resize(baseWidth, ' ');
         DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 3 + HORSE_NUM, msg.c_str());
     }
 
-    // 경기 종료 여부
+    // 종료 메시지
     if (isRaceFinished)
     {
-        std::ostringstream rankStream;
-        std::string endLine = "🎉 경기 종료! 모든 말이 결승선을 통과했습니다! 🎉";
-        rankStream << "1위 : " << rank[0].GetName()
-            << "  2위 : " << rank[1].GetName()
-            << "   3위 : " << rank[2].GetName();
+        std::string endLine = "== 경기 종료! 모든 말이 결승선을 통과했습니다! ==";
         DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 4 + HORSE_NUM, endLine.c_str());
-        DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 5 + HORSE_NUM, rankStream.str().c_str());
+     
+        for (int i = 0; i < 3; ++i)
+        {
+            std::ostringstream rankLine;
+            bool isPlayerRank = (rank[i] == horses[playerIndex]);
+
+            rankLine << std::left
+                << (isPlayerRank ? "Player▶ " : "        ")  // 8자리 고정
+                << std::setw(3) << (i + 1) << "위 : "
+                << std::setw(12) << rank[i]->GetName();
+
+            DB.ScreenPrintUI(0, DF_BG_SIZE_Y + 5 + HORSE_NUM + i, rankLine.str().c_str());
+        }
     }
+}
+
+void RaceManager::RunRace(DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X], Horse* RaceHorses[], Horse& trainee)
+{
+    // 콘솔 사이즈 조정 및 버퍼 초기화
+    system("mode con:cols=200 lines=60");
+    DB.ScreenInit();
+    DB.ScreenFlipping();
+
+    // 레이스 초기화
+    InitRace(RaceHorses, trainee);
+
+    // 레이스 루프
+    while (!IsRaceFinished())
+    {
+        Sleep(100);
+        DB.ClearScreen(_BG);
+        RaceTick(RaceHorses);
+        Render(_BG, RaceHorses);
+        PrintUI(DB, RaceHorses);
+        DB.PrintScreen(_BG);
+    }
+
+    // 종료 처리
+    Sleep(2000);
+    DB.ScreenRelease();
 }
