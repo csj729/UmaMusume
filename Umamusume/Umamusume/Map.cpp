@@ -38,7 +38,7 @@ void Map::MapRender(Tile(*BG)[DF_BG_SIZE_X])
     }
 
     // 결승선 따로 그리기 (스크롤 반영 위치에만)
-    int finishScreenX = FinishLine - m_scrollX;
+    int finishScreenX = m_finishLine - m_scrollX;
     if (finishScreenX >= 0 && finishScreenX < DF_BG_SIZE_X)
     {
         for (int lane = 0; lane < totalLanes; ++lane)
@@ -56,7 +56,37 @@ void Map::MapRender(Tile(*BG)[DF_BG_SIZE_X])
 void Map::SetScrollX(int x) 
 {
     if (x < 0) x = 0;
-    int maxScroll = worldWidth - DF_BG_SIZE_X; // worldWidth 정의 필요
+    int maxScroll = m_mapSize - DF_BG_SIZE_X;
     if (x > maxScroll) x = maxScroll;
     m_scrollX = x;
+}
+
+void Map::SetMapSizeRandom()
+{
+    int randValue = rand() % 3;
+    if (randValue == 0)
+    {
+        m_mapSize = SHORT_DISTANCE;
+    }
+    else if (randValue == 1)
+    {
+        m_mapSize = MEDIUM_DISTANCE;
+    }
+    else
+    {
+        m_mapSize = LONG_DISTANCE;
+    }
+
+    m_finishLine = m_mapSize - 5;
+}
+
+std::string Map::GetDistanceTypeString() const
+{
+    switch (m_mapSize)
+    {
+    case SHORT_DISTANCE: return "단거리";
+    case MEDIUM_DISTANCE: return "중거리";
+    case LONG_DISTANCE: return "장거리";
+    default: return "알 수 없음";
+    }
 }

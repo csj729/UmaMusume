@@ -2,6 +2,9 @@
 #include "Horse.h"
 #include "Map.h"
 #include "DoubleBuffering.h"
+#include "SkillDatabase.h"
+
+class ChallengeManager;
 
 class RaceManager
 {
@@ -21,8 +24,12 @@ private:
 public:
     explicit RaceManager(Map* map);
 
+    // 플레이어 말 선택
+    void SelectPlayerHorse(const std::vector<Horse>& PlayerList, Horse& player);
+
     // 초기화
     void InitRace(Horse* horses[], Horse& trainee);
+    void InitRace(Horse* horses[], Horse& trainee, ChallengeManager& CM);
 
     // 프레임별 처리
     void RaceTick(Horse* horses[]);
@@ -33,6 +40,7 @@ public:
 
     // 전체 레이스 실행
     void RunRace(DoubleBuffering& DB, Tile(*BG)[DF_BG_SIZE_X], Horse* horses[], Horse& trainee);
+    void RunRace(DoubleBuffering& DB, Tile(*BG)[DF_BG_SIZE_X], Horse* horses[], Horse& trainee, ChallengeManager& CM);
 
     // 상태 조회
     bool IsRaceFinished() const { return isRaceFinished; }

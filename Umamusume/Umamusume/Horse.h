@@ -2,6 +2,7 @@
 #include "Defines.h"
 #include "Tile.h"
 #include "Skill.h"
+#include "Map.h"
 
 const std::string HorseName[HORSETABLE_NUM] =
 {
@@ -30,7 +31,7 @@ enum HorseType
 
 enum HorseCondition
 {
-    VERYPOOR,
+    VERYPOOR = -2,
     POOR,
     FEELSOSO,
     GOOD,
@@ -54,32 +55,41 @@ const std::map<std::string, HorseData> HorseDataTable =
     {   HorseName[0],
         {5, 30.0f, LEADER, 
             {
-                Skill("존귀한 사명을 완수하기 위하여", 15, 1.0f, 0.0f, 10.0f),
-                Skill("스태미너 킵", 1, 0.8f, 3.0f, 1.0f),
-                Skill("속도 유지", 2, 0.6f, 0.0f, 4.0f)
+                Skill("존귀한 사명을 완수하기 위하여", 5, 0.0f, 0.0f, 8.0f),
+                Skill("스태미너 킵", 0, 0.8f, 3.0f, 1.0f),
+                Skill("속도 유지", 1, 0.6f, 0.0f, 4.0f)
             }
         }
     },
 
-    {    HorseName[1],
+    {   HorseName[1],
         {5, 30.0f, CLOSER,
             {
-                Skill("불침함, 출항!!", 15, 0.5f, 0.0f, 5.0f),
-                Skill("추격", 4, 0.5f, 0.0f, 5.0f),
-                Skill("후방 대기", 1, 0.8f, 1.0f, 5.0f)
+                Skill("불침함, 출항!!", 7, 0.0f, 0.0f, 6.0f),
+                Skill("추격", 2, 0.5f, 0.0f, 5.0f),
+                Skill("후방 대기", 1, 0.8f, 2.0f, 5.0f)
             }
         }
     },
-    { HorseName[2], {5, 30.0f, STALKER, {
-        Skill("승리의 고동", 15, 0.5f, 0.0f, 5.0f),
-        Skill("속도 가속", 2, 0.8f, 0.0f, 5.0f),
-        Skill("영양 보급", 0, 0.5f, 2.0f, 1.0f)
-    }}},
-    { HorseName[3], {5, 30.0f, PACESETTER, {
-        Skill("홍염 기어/LP1211-M", 13, 0.5f, 0.0f, 6.0f),
-        Skill("앞장서기", 2, 0.6f, 0.0f, 5.0f),
-        Skill("기어 시프트", 1, 0.8f, 0.0f, 5.0f)
-    }}}
+    { 
+        HorseName[2], 
+        {5, 30.0f, STALKER,
+            {
+                Skill("승리의 고동", 4, 0.0f, 0.0f, 5.0f),
+                Skill("속도 가속", 1, 0.8f, 0.0f, 5.0f),
+                Skill("영양 보급", 0, 0.5f, 2.0f, 1.0f)
+            }
+        }
+    },
+    {   HorseName[3], 
+        {5, 30.0f, PACESETTER,
+            {
+                Skill("홍염 기어/LP1211-M", 5, 0.0f, 0.0f, 6.0f),
+                Skill("앞장서기", 1, 0.8f, 1.0f, 5.0f),
+                Skill("기어 시프트", 2, 0.5f, 0.0f, 5.0f)
+            }
+        }
+    }
 };
 
 class Horse
@@ -118,16 +128,18 @@ public:
         m_vitStatus(HorseVitality::ENERGETIC),
         m_type(HorseType::PACESETTER),
         m_condition(HorseCondition::FEELSOSO)
-    {
-    }
+    {}
 
     // --- 기능 함수 ---
     void HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX);
     void InitHorse();
     void InitByName(const std::string& name);
     std::string SelectName(const std::string horseName[]);
-    void HorseTick(int leader_X, float deltaTime);
-    void CheckFinish();
+    void HorseTick(int leader_X, float deltaTime, const Map& map);
+    void CheckFinish(const Map& map);
+    void PrintPlayerList(const std::vector<Horse>& PlayerList);
+    void ResetRaceState();
+    void InputSkill(Skill newskill);
 
     // --- 설정자 (Setter) ---
     void SetName(const std::string Newname) { m_name = Newname; }
@@ -141,11 +153,6 @@ public:
         m_Position.X = x;
         m_Position.Y = y;
     }
-    void SetSkill(int index, const Skill& skill)
-    {
-        if (index >= 0 && index < SKILL_NUM)
-            m_skillList[index] = skill;
-    }
     void SetSkills(const std::vector<Skill>& newSkills)
     {
         m_skillList = newSkills; // 벡터 대입으로 복사
@@ -156,7 +163,7 @@ public:
     void SetFinishTime(float time) { m_finishTime = time; }
     void SetHorseCondition(HorseCondition Newcondition) { m_condition = Newcondition; }
     void SetFinish(bool val) { isFinish = val; }
-
+    
     // --- 접근자 (Getter) ---
     const Skill* GetSkill(int index) const;
     const Skill* GetActiveSkill() const;
@@ -169,6 +176,7 @@ public:
     bool IsFinish() const { return isFinish; }
     bool IsRanked() const { return isRanked; }
     int GetLane() const { return m_lane; }
+    int GetSkillNumber() const { return m_skillList.size(); }
     int GetIntel() const { return m_intelligence; }
     float GetFinishTime() const { return m_finishTime; }
     HorseCondition GetHorseCondition() const { return m_condition; }

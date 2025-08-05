@@ -81,7 +81,7 @@ std::string Horse::SelectName(const std::string horseName[])
 	return m_name = horseName[rand() % HORSETABLE_NUM];
 }
 
-void Horse::HorseTick(int leader_X, float deltaTime)
+void Horse::HorseTick(int leader_X, float deltaTime, const Map& map)
 {
 	if (isFinish) return;
 
@@ -89,16 +89,17 @@ void Horse::HorseTick(int leader_X, float deltaTime)
 	int speedModType = 0, speedModStamina = 0;
 	int distanceFromLeader = leader_X - m_Position.X;
 
-	switch (m_type) {
-	case PACESETTER: speedModType = 4; staminaDrain = 0.12f; break;
-	case LEADER:     speedModType = 2; staminaDrain = 0.08f; break;
+	switch (m_type)
+	{
+	case PACESETTER: speedModType = 2; staminaDrain = 0.1f; break;
+	case LEADER:     speedModType = 1; staminaDrain = 0.08f; break;
 	case STALKER:
-		speedModType = (distanceFromLeader >= 200) ? 3 : 1;
-		staminaDrain = (distanceFromLeader >= 200) ? 0.1f : 0.04f;
+		speedModType = (distanceFromLeader >= 200) ? 1 : 0;
+		staminaDrain = (distanceFromLeader >= 200) ? 0.08f : 0.04f;
 		break;
 	case CLOSER:
-		speedModType = (leader_X >= FinishLine * 2 / 3) ? 8 : -1;
-		staminaDrain = (leader_X >= FinishLine * 2 / 3) ? 0.15f : 0.02f;
+		speedModType = (leader_X >= map.GetFinishLine() * 2 / 3) ? 4 : -1;
+		staminaDrain = (leader_X >= map.GetFinishLine() * 2 / 3) ? 0.15f : 0.02f;
 		break;
 	}
 
@@ -110,7 +111,8 @@ void Horse::HorseTick(int leader_X, float deltaTime)
 	else if (staminaRate > 0.25f) m_vitStatus = TIRED;
 	else m_vitStatus = EXHAUSTED;
 
-	switch (m_vitStatus) {
+	switch (m_vitStatus)
+	{
 	case ENERGETIC: speedModStamina = 2; break;
 	case TIRED: speedModStamina = -1; break;
 	case EXHAUSTED: speedModStamina = -3; break;
@@ -119,21 +121,26 @@ void Horse::HorseTick(int leader_X, float deltaTime)
 
 	m_realSpeed = max(1, m_baseSpeed + speedModType + speedModStamina);
 	bool isLeading = m_Position.X >= leader_X;
-	float raceProgress = static_cast<float>(m_Position.X) / FinishLine;
+	float raceProgress = static_cast<float>(m_Position.X) / map.GetFinishLine();
 
 	int totalSpeedBuff = 0;
 	bool hpRecovered = false;
 
-	for (int i = 0; i < SKILL_NUM; ++i) {
+	for (int i = 0; i < m_skillList.size(); ++i) 
+	{
 		Skill& skill = m_skillList[i];
-		if (skill.IsActive()) {
+		skill.AddChance(*this);
+		if (skill.IsActive()) 
+		{
 			skill.UpdateDuration(deltaTime);
 			if (!skill.IsActive()) skill.Deactivate();
 			totalSpeedBuff += skill.GetSpeed();
 		}
-		else if (skill.ShouldActivate(raceProgress, m_stamina, m_MaxStamina, isLeading)) {
+		else if (skill.ShouldActivate(raceProgress, m_stamina, m_MaxStamina, isLeading)) 
+		{
 			skill.Activate();
-			if (!hpRecovered) {
+			if (!hpRecovered) 
+			{
 				m_stamina = min(m_MaxStamina, m_stamina + skill.GetStamina());
 				hpRecovered = true;
 			}
@@ -144,16 +151,18 @@ void Horse::HorseTick(int leader_X, float deltaTime)
 	m_Position.X += m_realSpeed;
 }
 
-void Horse::CheckFinish() {
-	if (m_Position.X >= FinishLine) isFinish = true;
+void Horse::CheckFinish(const Map& map) {
+	if (m_Position.X >= map.GetFinishLine()) isFinish = true;
 }
 
-const Skill* Horse::GetSkill(int index) const {
-	return (index >= 0 && index < SKILL_NUM) ? &m_skillList[index] : nullptr;
+const Skill* Horse::GetSkill(int index) const
+{
+	return (index >= 0 && index < m_skillList.size()) ? &m_skillList[index] : nullptr;
 }
 
-const Skill* Horse::GetActiveSkill() const {
-	for (int i = 0; i < SKILL_NUM; ++i)
+const Skill* Horse::GetActiveSkill() const 
+{
+	for (int i = 0; i < m_skillList.size(); ++i)
 		if (m_skillList[i].IsActivated())
 			return &m_skillList[i];
 	return nullptr;
@@ -183,5 +192,53 @@ void Horse::InitByName(const std::string& name)
 		this->SetStamina(m_MaxStamina);
 		this->SetHorseType(it->second.type);
 		this->SetSkills(it->second.skills);
+	}
+}
+
+void Horse::ResetRaceState() {
+	isFinish = false;
+	isRanked = false;
+	m_stamina = m_MaxStamina;
+
+	for (Skill& skill : m_skillList)
+		skill.Deactivate();
+}
+
+void Horse::InputSkill(Skill newskill)
+{
+	m_skillList.push_back(newskill);
+}
+
+void Horse::PrintPlayerList(const std::vector<Horse>& PlayerList)
+{
+	std::cout << "======================================================================================\n";
+	std::cout << " No. 이름          타입   속도  스태미나  지능   스킬 목록\n";
+	std::cout << "======================================================================================\n";
+
+	for (size_t i = 0; i < PlayerList.size(); ++i)
+	{
+		const Horse& horse = PlayerList[i];
+
+		// 기본 정보 열 너비 계산
+		std::ostringstream oss;
+		oss << std::left
+			<< std::setw(4) << i + 1
+			<< std::setw(14) << horse.GetName()
+			<< std::setw(8) << horse.GetHorseTypeName()
+			<< std::setw(6) << horse.GetBaseSpeed()
+			<< std::setw(10) << horse.GetMaxStamina()
+			<< std::setw(7) << horse.GetIntel();
+
+		std::string baseLine = oss.str();
+		std::cout << baseLine << "- " << horse.GetSkill(0)->GetName() << "\n";
+
+		// 나머지 스킬 출력 시 위의 스킬 출력과 같은 열 공백 맞춤
+		for (int j = 1; j < horse.m_skillList.size(); ++j)
+		{
+			std::cout << std::setw(baseLine.length()) << " "
+				<< "- " << horse.GetSkill(j)->GetName() << "\n";
+		}
+
+		std::cout << "--------------------------------------------------------------------------------------\n";
 	}
 }

@@ -2,8 +2,8 @@
 #include "Defines.h"
 #include "RaceManager.h"
 #include "Horse.h"
+#include "SkillDatabase.h"
 
-// 상수 정의 (필요하면 constexpr 등으로 변경 가능)
 #define DECREASE_HP_TRAINING 15
 #define INCREASE_AMOUNT_SPEED 1
 #define INCREASE_AMOUNT_STAMINA 1
@@ -46,6 +46,8 @@ private:
     void HandleRestDuringFailure(Horse& trainee, TrainingType _type);
     void HandleRetryTraining(Horse& trainee, TrainingType _type);
     void ApplyCriticalFailure(Horse& trainee);
+    void StatIncreaseAfterRace(Horse& trainee, RaceManager& RM);
+    void ShowSkillHintMenu(Horse& trainee);
 
     int GetTrainingSelection() const;
 

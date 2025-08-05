@@ -1,5 +1,4 @@
 #include "FileSystem.h"
-#include <fstream>
 
 bool FileSystem::SavePlayerList(const std::string& filename, const std::vector<Horse>& playerList)
 {
@@ -27,11 +26,22 @@ bool FileSystem::SavePlayerList(const std::string& filename, const std::vector<H
         ofs.write(reinterpret_cast<const char*>(&intel), sizeof(short));
 
         // 스킬
-        for (int i = 0; i < SKILL_NUM; ++i)
+        size_t skillCount = horse.GetSkillNumber();
+        ofs.write(reinterpret_cast<const char*>(&skillCount), sizeof(size_t));
+        for (int i = 0; i < skillCount; ++i)
         {
             std::string skillName = horse.GetSkill(i)->GetName();
+            short speed = horse.GetSkill(i)->GetSpeed();
+            float chance = horse.GetSkill(i)->GetChance();
+            float stamina = horse.GetSkill(i)->GetStamina();
+            float duration = horse.GetSkill(i)->GetDuration();
+
             size_t skillNameLen = skillName.size();
             ofs.write(reinterpret_cast<const char*>(&skillNameLen), sizeof(size_t));
+            ofs.write(reinterpret_cast<const char*>(&speed), sizeof(short));
+            ofs.write(reinterpret_cast<const char*>(&chance), sizeof(float));
+            ofs.write(reinterpret_cast<const char*>(&stamina), sizeof(float));
+            ofs.write(reinterpret_cast<const char*>(&duration), sizeof(float));
             ofs.write(skillName.c_str(), skillNameLen);
         }
     }
@@ -74,18 +84,36 @@ bool FileSystem::LoadPlayerList(const std::string& filename, std::vector<Horse>&
         horse.SetIntel(intel);
 
         // 스킬
-        std::vector<Skill> skillList(SKILL_NUM);
-        for (int j = 0; j < SKILL_NUM; ++j)
+        std::vector<Skill> skillList;
+        size_t skillCount = 0;
+        ifs.read(reinterpret_cast<char*>(&skillCount), sizeof(size_t));
+
+        for (size_t j = 0; j < skillCount; ++j)
         {
             size_t skillNameLen;
             ifs.read(reinterpret_cast<char*>(&skillNameLen), sizeof(size_t));
+
+            short skillSpeed;
+            float chance, stamina, duration;
+
+            ifs.read(reinterpret_cast<char*>(&skillSpeed), sizeof(short));
+            ifs.read(reinterpret_cast<char*>(&chance), sizeof(float));
+            ifs.read(reinterpret_cast<char*>(&stamina), sizeof(float));
+            ifs.read(reinterpret_cast<char*>(&duration), sizeof(float));
+
             std::string skillName(skillNameLen, ' ');
             ifs.read(&skillName[0], skillNameLen);
 
-            skillList[j].SetName(skillName);  // Skill(string name) 생성자 필요
-        }
-        horse.SetSkills(skillList); // Skill[]을 설정하는 함수 필요
+            Skill skill(skillName); // 기본 생성자 + 이름 설정자
+            skill.SetSpeed(skillSpeed);
+            skill.SetBaseChance(chance);
+            skill.SetStamina(stamina);
+            skill.SetDuration(duration);
 
+            skillList.push_back(skill);
+        }
+
+        horse.SetSkills(skillList);
         playerList.push_back(horse);
     }
 

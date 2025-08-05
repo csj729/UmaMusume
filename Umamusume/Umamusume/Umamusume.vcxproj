@@ -123,6 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ChallengeManager.cpp" />
     <ClCompile Include="Defines.h" />
     <ClCompile Include="DoubleBuffering.cpp" />
     <ClCompile Include="FileSystem.cpp" />
@@ -131,16 +132,19 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="RaceManager.cpp" />
     <ClCompile Include="Skill.cpp" />
+    <ClCompile Include="SkillDatabase.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="TrainingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChallengeManager.h" />
     <ClInclude Include="DoubleBuffering.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Horse.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="RaceManager.h" />
     <ClInclude Include="Skill.h" />
+    <ClInclude Include="SkillDatabase.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="TrainingManager.h" />
   </ItemGroup>

@@ -11,6 +11,7 @@
 #include <random>
 #include <cmath>
 #include <map>
+#include <fstream>
 
 // 배경 크기
 #define DF_BG_SIZE_X 200
@@ -22,21 +23,20 @@
 #define LANE_NUM 4
 #define TRACK_START_Y 0     // 트랙의 시작 Y 좌표
 #define START_LINE_X 3
-#define SCROLL_SIZE 2000	// 트랙 길이
+#define SHORT_DISTANCE 2000	// 트랙 길이
+#define MEDIUM_DISTANCE 3500
+#define LONG_DISTANCE 5000
 
 // 플레이 오브젝트 관련
 #define HORSE_NUM 4
 #define HORSETABLE_NUM 4
 #define SKILL_NUM 3
 
-
-const int worldWidth = SCROLL_SIZE;
-const int FinishLine = worldWidth - 5;
-
 enum Action
 {
 	TRAINING = 1,
 	RACE,
+	CHALLENGE,
 	SAVE,
 	LOAD,
 	UMALIST,

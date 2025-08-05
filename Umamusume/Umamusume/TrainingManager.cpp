@@ -1,5 +1,7 @@
 #include "TrainingManager.h"
 
+std::vector<Skill>& skills = SkillDatabase::GetAllSkills();
+
 Horse TrainingManager::SelectTrainee()
 {
 	Horse trainee;
@@ -55,38 +57,11 @@ void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerLis
 		}
 		else // 레이스
 		{
-			Horse* RaceHorses[HORSE_NUM];
-
+			Horse* RaceHorses[HORSE_NUM];	
 			RM.RunRace(DB, _BG, RaceHorses, trainee);
-			if (&trainee == RM.GetRankedHorse(0))
-			{
-				StatChange(trainee, 3, SPEED);
-				StatChange(trainee, 3, STAMINA);
-				StatChange(trainee, 30, INTELLIGENCE);
-				SetSP(GetSP() + 50);
-			}
-
-			else if (&trainee == RM.GetRankedHorse(1))
-			{
-				StatChange(trainee, 2, SPEED);
-				StatChange(trainee, 2, STAMINA);
-				StatChange(trainee, 20, INTELLIGENCE);
-				SetSP(GetSP() + 50);
-			}
-
-			else if (&trainee == RM.GetRankedHorse(2))
-			{
-				StatChange(trainee, 1, SPEED);
-				StatChange(trainee, 1, STAMINA);
-				StatChange(trainee, 10, INTELLIGENCE);
-				SetSP(GetSP() + 50);
-			}
-
-			else
-				SetSP(GetSP() + 50);
-
-			m_trainingStage++;
-			
+			StatIncreaseAfterRace(trainee, RM);
+			ShowSkillHintMenu(trainee);
+			m_trainingStage++;	
 		}
 
 	}
@@ -98,9 +73,9 @@ void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerLis
 void TrainingManager::PrintTrainingMenu(const Horse& trainee)
 {
 	std::cout << "          " << trainee.GetName() << "\n";
-	std::cout << "=======[ " << m_trainingStage++ << "일차 훈련 ]========\n";
+	std::cout << "===========[ " << m_trainingStage++ << "일차 훈련 ]============\n";
 	std::cout << "1. 속도 훈련\n2. 지구력 훈련\n3. 지능 훈련\n4. 휴식\n";
-	std::cout << "=======================\n";
+	std::cout << "======================================\n";
 	PrintStatus(trainee);
 	std::cout << ">> 선택: ";
 }
@@ -127,6 +102,18 @@ void TrainingManager::Training(Horse& trainee, TrainingType _type)
 	float randFloat = static_cast<float>(rand()) / RAND_MAX;
 	if (TrainingProbability(m_trainHp, m_trainMaxHp) >= randFloat)
 	{
+		// 스킬 힌트 Level 상승
+		randFloat = static_cast<float>(rand()) / RAND_MAX; // 예: 40% 확률
+		if (0.4f > randFloat)
+		{
+			// 무작위 스킬 하나 선택
+			int randIndex = rand() % skills.size();
+			skills[randIndex].IncreaseHintLevel();
+
+			std::cout << "[힌트] \"" << skills[randIndex].GetName() << "\" 힌트 레벨이 "
+				<< skills[randIndex].GetHintLevel() << "이 되었습니다!\n\n";
+		}
+
 		randFloat = static_cast<float>(rand()) / RAND_MAX;
 		if (randFloat < 0.2f) // 대성공
 		{
@@ -408,5 +395,123 @@ void TrainingManager::HandleSaveOrDiscard(Horse& trainee, std::vector<Horse>& Pl
 			system("cls");
 		}
 		Sleep(1000);
+	}
+}
+
+void TrainingManager::StatIncreaseAfterRace(Horse& trainee, RaceManager& RM)
+{
+	if (&trainee == RM.GetRankedHorse(0))
+	{
+		StatChange(trainee, 3, SPEED);
+		StatChange(trainee, 3, STAMINA);
+		StatChange(trainee, 30, INTELLIGENCE);
+		SetSP(GetSP() + 50);
+		std::cout << "1등 !! 모든 스탯이 3만큼 상승했다!! 스킬포인트 50을 얻었다!!\n";
+	}
+
+	else if (&trainee == RM.GetRankedHorse(1))
+	{
+		StatChange(trainee, 2, SPEED);
+		StatChange(trainee, 2, STAMINA);
+		StatChange(trainee, 20, INTELLIGENCE);
+		SetSP(GetSP() + 50);
+		std::cout << "2등 !! 모든 스탯이 2만큼 상승했다!! 스킬포인트 50을 얻었다!!\n";
+	}
+
+	else if (&trainee == RM.GetRankedHorse(2))
+	{
+		StatChange(trainee, 1, SPEED);
+		StatChange(trainee, 1, STAMINA);
+		StatChange(trainee, 10, INTELLIGENCE);
+		SetSP(GetSP() + 50);
+		std::cout << "3등 !! 모든 스탯이 1만큼 상승했다!! 스킬포인트 50을 얻었다!!\n";
+	}
+
+	else
+	{
+		SetSP(GetSP() + 50);
+		std::cout << "스킬포인트 50을 얻었다!!\n";
+	}
+
+	Sleep(2000);
+}
+
+void TrainingManager::ShowSkillHintMenu(Horse& trainee)
+{
+	while (true)
+	{
+		system("cls");
+		std::cout << "\n--- 배울 수 있는 스킬 목록 ---\n";
+
+		std::vector<Skill*> availableSkills;
+		for (Skill& skill : skills)
+		{
+			if (skill.GetHintLevel() > 0 && !skill.IsLearned())
+			{
+				availableSkills.push_back(&skill);
+			}
+		}
+
+		if (availableSkills.empty())
+		{
+			std::cout << "더 이상 배울 수 있는 스킬이 없습니다.\n\n";
+			Sleep(1500);
+			return;
+		}
+
+		// 스킬 목록 출력
+		for (size_t i = 0; i < availableSkills.size(); ++i)
+		{
+			Skill* s = availableSkills[i];
+			int cost = s->GetEffectiveCost();
+			std::cout << i + 1 << ". " << s->GetName()
+				<< " (힌트 Lv: " << s->GetHintLevel()
+				<< ", 필요 SP: " << cost << ")";
+
+			if (m_SP >= cost)
+				std::cout << " [배울 수 있음]";
+			else
+				std::cout << " [SP 부족]";
+			std::cout << "\n\n";
+		}
+
+		// 번호 입력
+		std::cout << "\n배울 스킬 번호를 선택하세요 (0은 나가기) : ";
+		int choice;
+		std::cin >> choice;
+
+		if (choice == 0)
+			break;
+
+		if (choice < 1 || choice >(int)availableSkills.size())
+		{
+			std::cout << "잘못된 입력입니다.\n";
+			Sleep(1500);
+			continue;
+		}
+
+		Skill* selected = availableSkills[choice - 1];
+		int cost = selected->GetEffectiveCost();
+
+		if (m_SP < cost)
+		{
+			std::cout << "SP가 부족합니다.\n";
+			Sleep(1500);
+			continue;
+		}
+
+		// 배우기 여부 확인
+		std::cout << "\n'" << selected->GetName() << "' 스킬을 배우시겠습니까? (Y/N): ";
+		char confirm;
+		std::cin >> confirm;
+
+		if (confirm == 'Y' || confirm == 'y')
+		{
+			m_SP -= cost;
+			selected->SetLearned(true);
+			trainee.InputSkill(*selected);
+			std::cout << selected->GetName() << " 스킬을 배웠습니다! (남은 SP: " << m_SP << ")\n";
+			Sleep(1500);
+		}
 	}
 }

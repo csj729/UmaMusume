@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <fstream>
 #include <iostream>
 #include "Defines.h"
 #include "Horse.h"  // Horse 클래스 정의 포함
