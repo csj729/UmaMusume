@@ -10,7 +10,7 @@ void ChallengeManager::RunChallenge(std::vector<Horse>& PlayerList, Horse& playe
 
     while (true)
     {
-        std::cout << "레이스에 도전하시겠습니다?? (Y/N) ";
+        std::cout << "\n레이스에 도전하시겠습니다?? (Y/N) ";
         char sel;
         std::cin >> sel;
 
@@ -24,7 +24,7 @@ void ChallengeManager::RunChallenge(std::vector<Horse>& PlayerList, Horse& playe
             {
                 std::cout << m_stage++ << "스테이지를 클리어했습니다!!\n";
             }
-
+                
             else
             {
                 if (m_stage == 1)
@@ -35,7 +35,7 @@ void ChallengeManager::RunChallenge(std::vector<Horse>& PlayerList, Horse& playe
                 }
                 else
                 {
-                    std::cout << m_stage << "스테이지까지 클리어했습니다!!\n";
+                    std::cout << --m_stage << "스테이지까지 클리어했습니다!!\n";
                     std::cout << "순위 등록하시겠습니까?? (Y/N): ";
                     std::cin >> sel;
 
@@ -62,6 +62,7 @@ void ChallengeManager::RunChallenge(std::vector<Horse>& PlayerList, Horse& playe
             {
                 std::cout << "순위 등록하시겠습니까?? (Y/N): ";
                 std::cin >> sel;
+                --m_stage;
 
                 if (sel == 'Y' || sel == 'y')
                 {
@@ -176,9 +177,8 @@ void ChallengeManager::PrintRanking()
     const int nameWidth = 18;
     const int horseWidth = 15;
     const int stageWidth = 8;
-    const int totalWidth = rankWidth + nameWidth + horseWidth + stageWidth + 9; // 구분자 포함
+    const int totalWidth = rankWidth + nameWidth + horseWidth + stageWidth + 9;
 
-    // 구분선
     auto printLine = [&]() {
         std::cout << std::string(totalWidth, '=') << "\n";
         };
@@ -191,16 +191,17 @@ void ChallengeManager::PrintRanking()
         << std::setw(stageWidth) << "스테이지" << "\n";
     printLine();
 
-    int rank = 1;
-    int prevStage = -1;
     int displayRank = 1;
+    int prevStage = -1;
 
-    for (const auto& entry : ranking)
+    for (size_t i = 0; i < ranking.size(); ++i)
     {
-        // 동일 스테이지면 같은 순위 출력
-        if (prevStage != -1 && entry.stage < prevStage)
+        const auto& entry = ranking[i];
+
+        // 스테이지가 이전과 다르면 순위 1 증가
+        if (i > 0 && entry.stage != prevStage)
         {
-            displayRank = rank;
+            ++displayRank;
         }
 
         std::cout << std::left
@@ -210,7 +211,6 @@ void ChallengeManager::PrintRanking()
             << std::setw(stageWidth) << entry.stage << "\n";
 
         prevStage = entry.stage;
-        ++rank;
     }
 
     printLine();

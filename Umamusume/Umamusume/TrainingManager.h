@@ -31,6 +31,7 @@ private:
     int m_trainMaxHp = 100;
     int m_trainHp = m_trainMaxHp;
     int m_SP = 0;
+    std::vector<Skill> skills;
 
     // --- 내부 헬퍼 함수 ---
     int GetIncreaseAmount(TrainingType type) const;

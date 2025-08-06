@@ -51,6 +51,9 @@
     <ClCompile Include="ChallengeManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Interface.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DoubleBuffering.h">
@@ -81,6 +84,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ChallengeManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ASCIIImage.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,6 +8,7 @@
 #include "TrainingManager.h"
 #include "FileSystem.h"
 #include "ChallengeManager.h"
+#include "ASCIIImage.h"
 
 static Tile BG[DF_BG_SIZE_Y][DF_BG_SIZE_X];
 static Map map;
@@ -34,7 +35,9 @@ static char LOGO[21][80] =
 
 void PrintMainMenu_Console()
 {
-    std::cout << "========================[ 경마 게임 ]========================\n";
+
+    std::cout << MainScene[Maru];
+    std::cout << "==================[ 우마무스메 ]=================\n";
     std::cout << "1. 트레이닝 (육성)\n";
     std::cout << "2. 연습 레이스 시작\n";
     std::cout << "3. 챌린지 레이스 시작\n";
@@ -42,7 +45,7 @@ void PrintMainMenu_Console()
     std::cout << "5. 불러오기\n";
     std::cout << "6. 육성 우마무스메 리스트\n";
     std::cout << "7. 종료\n";
-    std::cout << "=============================================================\n";
+    std::cout << "==================================================\n";
     std::cout << ">> 선택: ";
 }
 
@@ -50,10 +53,8 @@ void PrintMainMenu_Console()
 void BeginPlay()
 {
 	//윈도우 창 사이즈 설정
-	system("mode con:cols=200 lines=60");
-	DB.ScreenInit();
-	DB.ScreenFlipping();
-	Sleep(500); //3초간 프로그램을 멈춤
+    map.IntroRender();
+    Sleep(3000);
 }
 
 //프레임마다 반복 실행
@@ -96,6 +97,7 @@ void SelectAction()
         break;
 
     case CHALLENGE:
+        system("cls");
         int selNum;
         std::cout << "챌린지 레이스에 오신 것을 환영합니다!!\n\n";
         std::cout << "1. 챌린지 레이스 도전    2. 챌린지 레이스 순위 보기\n";
@@ -149,6 +151,7 @@ void SelectAction()
 int main()
 {
     srand(unsigned(time(NULL)));
+    BeginPlay();
 
     while (true)
     {

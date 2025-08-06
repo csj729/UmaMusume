@@ -58,7 +58,6 @@ void RaceManager::InitRace(Horse* horses[], Horse& player)
         }
     }
 }
-
 void RaceManager::InitRace(Horse* horses[], Horse& player, ChallengeManager& CM)
 {
     rankIndex = 0;
@@ -311,7 +310,6 @@ void RaceManager::RunRace(DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X], Horse* 
     Sleep(2000);
     DB.ScreenRelease();
 }
-
 void RaceManager::RunRace(DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X], Horse* RaceHorses[], Horse& trainee, ChallengeManager& CM)
 {
     // 콘솔 사이즈 조정 및 버퍼 초기화

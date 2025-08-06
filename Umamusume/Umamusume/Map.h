@@ -2,6 +2,7 @@
 #include "Defines.h"
 #include "Tile.h"
 
+
 class Map
 {
 private:
@@ -12,6 +13,8 @@ private:
 public:
 	Map();
 	void MapRender(Tile(*BG)[DF_BG_SIZE_X]);
+	void SetColor(int color);
+	void IntroRender();
 	void SetScrollX(int NewscrollX);
 	int GetScrollX() const { return m_scrollX; };
 	int GetMapSize() const { return m_mapSize; };

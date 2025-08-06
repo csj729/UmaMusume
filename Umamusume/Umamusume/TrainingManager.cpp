@@ -1,12 +1,11 @@
 #include "TrainingManager.h"
 
-std::vector<Skill>& skills = SkillDatabase::GetAllSkills();
-
 Horse TrainingManager::SelectTrainee()
 {
 	Horse trainee;
 	while (true)
 	{
+		system("cls");
 		std::cout << "육성할 말을 골라주세요!\n";
 		for (int i = 0; i < HORSETABLE_NUM; ++i)
 			std::cout << i + 1 << ". " << HorseName[i] << "  ";
@@ -35,6 +34,8 @@ void TrainingManager::InitTrainingManager()
 	m_trainingStage = 1;
 	m_trainMaxHp = 100;
 	m_trainHp = m_trainMaxHp;
+	m_SP = 0;
+	skills = SkillDatabase::GetAllSkills();
 }
 
 void TrainingManager::TrainingLoop(Horse& trainee, std::vector<Horse>& PlayerList, RaceManager& RM, DoubleBuffering& DB, Tile(*_BG)[DF_BG_SIZE_X], Horse* AI_horse[])
@@ -107,8 +108,18 @@ void TrainingManager::Training(Horse& trainee, TrainingType _type)
 		if (0.4f > randFloat)
 		{
 			// 무작위 스킬 하나 선택
-			int randIndex = rand() % skills.size();
-			skills[randIndex].IncreaseHintLevel();
+			int randIndex = 0;
+			while(true)
+			{
+				randIndex = rand() % skills.size();
+				if (skills[randIndex].IsLearned())
+					continue;
+				else
+				{
+					skills[randIndex].IncreaseHintLevel();
+					break;
+				}
+			}
 
 			std::cout << "[힌트] \"" << skills[randIndex].GetName() << "\" 힌트 레벨이 "
 				<< skills[randIndex].GetHintLevel() << "이 되었습니다!\n\n";

@@ -16,14 +16,16 @@ void Horse::HorseRender(Tile(*BG)[DF_BG_SIZE_X], int scrollX)
 	frame = (frame + 1) % 2;
 
 	// 프레임별 사람 모습 (4줄 × 9글자)
-	const char* frame0[4] = {
+	const char* frame0[4] = 
+	{
 		"  __ O  /",
 		" /  / -- ",
 		"   ====  ",
 		"__/   /  "
 	};
 
-	const char* frame1[4] = {
+	const char* frame1[4] = 
+	{
 		"  __  O /",
 		" /   /-= ",
 		"    ==== ",
@@ -151,7 +153,8 @@ void Horse::HorseTick(int leader_X, float deltaTime, const Map& map)
 	m_Position.X += m_realSpeed;
 }
 
-void Horse::CheckFinish(const Map& map) {
+void Horse::CheckFinish(const Map& map) 
+{
 	if (m_Position.X >= map.GetFinishLine()) isFinish = true;
 }
 

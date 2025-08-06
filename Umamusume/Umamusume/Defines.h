@@ -24,8 +24,8 @@
 #define TRACK_START_Y 0     // 트랙의 시작 Y 좌표
 #define START_LINE_X 3
 #define SHORT_DISTANCE 2000	// 트랙 길이
-#define MEDIUM_DISTANCE 3500
-#define LONG_DISTANCE 5000
+#define MEDIUM_DISTANCE 3000
+#define LONG_DISTANCE 4000
 
 // 플레이 오브젝트 관련
 #define HORSE_NUM 4
