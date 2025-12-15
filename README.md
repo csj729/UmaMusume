@@ -259,7 +259,9 @@ bool Skill::ShouldActivate(float raceProgress, float currentHp, float maxHp, boo
 
 ---
 
-## 👨‍💻 개발자
+<div align="center">
+
+### 👨‍💻 개발자
 
 <br>
 
@@ -268,9 +270,10 @@ bool Skill::ShouldActivate(float raceProgress, float currentHp, float maxHp, boo
 <br>
 <br>
 
-[![GitHub](https://img.shields.io/badge/GitHub-csj729-181717?style=for-the-badge&logo=github)](https://github.com/csj729/UmaMusume)
+[![GitHub](https://img.shields.io/badge/GitHub-csj729-181717?style=for-the-badge&logo=github)](https://github.com/csj729)
 
 <br>
 
+</div>
 
-<b>Github</b> <a href="https://www.google.com/search?q=https://github.com/csj729">csj729</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>E-mail</b> <a href="mailto:csj729@gmail.com">csj729@gmail.com</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>Phone</b> 010-2997-7295 </div>
+---
