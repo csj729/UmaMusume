@@ -159,7 +159,7 @@ void RaceManager::RaceTick(Horse* horses[])
 
 ### 🏋️ 육성 시뮬레이션
 * **역할:** 플레이어가 선택한 훈련(스피드, 스태미나 등)을 수행하고 스탯을 성장시킵니다.
-* **핵심 기능:** 체력(HP)에 따른 **실패 확률(RNG)**을 계산하고, 성공/실패/대성공(Critical) 분기를 처리합니다.
+* **핵심 기능:** 체력(HP)에 따른 **실패 확률**을 계산하고, 성공/실패/대성공(Critical) 분기를 처리합니다.
 
 <details> <summary><b>[코드 보기] TrainingManager::Training (훈련 로직)</b></summary>
 
