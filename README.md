@@ -2,11 +2,24 @@
 
 # 🏇 UmaMusume (C++ Console Project)
 
-
-
-
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="https://github.com/user-attachments/assets/be2d9d42-c631-47c8-ba89-50793fb130f5" alt="원작 게임 플레이" width="100%"/>
+      <br/>
+      <b>원작 게임 플레이</b>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://github.com/user-attachments/assets/7eacbf84-6b2f-4471-b91e-15a733b089e0" alt="게임 플레이" width="100%"/>
+      <br/>
+      <b>게임 플레이</b>
+    </td>
+  </tr>
+</table>
 
 </div>
+
+---
 
 ## 📋 목차
 
