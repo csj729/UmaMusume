@@ -1,4 +1,12 @@
+<div align="center">
+
 # 🏇 UmaMusume (C++ Console Project)
+
+
+
+
+
+</div>
 
 ## 📋 목차
 
